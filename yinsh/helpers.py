@@ -4,12 +4,6 @@ from yinsh.board import Hex
 
 
 class Direction(Enum):
-    NORTH = Hex(0, -1)
-    NORTHEAST = Hex(1, -1)
-    SOUTHEAST = Hex(1, 0)
-    SOUTH = Hex(0, 1)
-    SOUTHWEST = Hex(-1, 1)
-    NORTHWEST = Hex(-1, 0)
     N = Hex(0, -1)
     NE = Hex(1, -1)
     SE = Hex(1, 0)
@@ -23,7 +17,7 @@ def distance(a: Hex, b: Hex):
     return len(a - b)
 
 
-def neighbour(hex: Hex, direction: Direction):
+def neighbour(hex: Hex, direction: Direction) -> Hex:
     """Returns the neighbour Hex in the given direction"""
     return hex + direction
 
