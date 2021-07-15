@@ -1,4 +1,32 @@
+from enum import Enum
+
 from yinsh.board import Hex
+
+
+class Direction(Enum):
+    NORTH = Hex(0, -1)
+    NORTHEAST = Hex(1, -1)
+    SOUTHEAST = Hex(1, 0)
+    SOUTH = Hex(0, 1)
+    SOUTHWEST = Hex(-1, 1)
+    NORTHWEST = Hex(-1, 0)
+    N = Hex(0, -1)
+    NE = Hex(1, -1)
+    SE = Hex(1, 0)
+    S = Hex(0, 1)
+    SW = Hex(-1, 1)
+    NW = Hex(-1, 0)
+
+
+def distance(a: Hex, b: Hex):
+    """Calculates the distance between two hexes"""
+    return len(a - b)
+
+
+def neighbour(hex: Hex, direction: Direction):
+    """Returns the neighbour Hex in the given direction"""
+    return hex + direction
+
 
 inv_coordinate_index = {}
 
@@ -13,31 +41,3 @@ for q in range(-5, 6):
             idx += 1
 
 coordinate_index = {coord: i for i, coord in inv_coordinate_index.items()}
-
-directions = [Hex(0, -1), Hex(1, -1), Hex(1, 0,), Hex(0, 1,), Hex(-1, 1), Hex(-1, 0)]
-diagonals = [Hex(1, -2), Hex(2, -1), Hex(1, 1), Hex(-1, 2), Hex(-2, 1), Hex(-1, -1)]
-
-
-def distance(a: Hex, b: Hex):
-    """Calculates the distance between two hexes"""
-    return len(a - b)
-
-
-def direction(direction: int):
-    """Returns a Hex corresponding to the given integer direction"""
-    return directions[direction]
-
-
-def neighbour(hex: Hex, direction: int):
-    """Returns the neighbour Hex in the given direction"""
-    return hex + directions[direction]
-
-
-def diagonal_direction(direction: int):
-    """Returns a Hex corresponding to the given integer direction"""
-    return diagonals[direction]
-
-
-def diagonal_neighbour(hex: Hex, direction: int):
-    """Returns the diagonal neighbour Hex in the given direction"""
-    return hex + diagonals[direction]
