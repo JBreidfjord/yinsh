@@ -1,15 +1,5 @@
-from enum import Enum
-
 from yinsh.board import Hex
-
-
-class Direction(Enum):
-    N = Hex(0, -1)
-    NE = Hex(1, -1)
-    SE = Hex(1, 0)
-    S = Hex(0, 1)
-    SW = Hex(-1, 1)
-    NW = Hex(-1, 0)
+from yinsh.types import Direction
 
 
 def distance(a: Hex, b: Hex):
@@ -19,10 +9,10 @@ def distance(a: Hex, b: Hex):
 
 def neighbour(hex: Hex, direction: Direction) -> Hex:
     """Returns the neighbour Hex in the given direction"""
-    return hex + direction
+    return hex + direction.value
 
 
-inv_coordinate_index = {}
+inv_coordinate_index: dict[int, Hex] = {}
 
 inv_coordinate_index[0] = Hex(0, 0)
 idx = 1
@@ -35,3 +25,4 @@ for q in range(-5, 6):
             idx += 1
 
 coordinate_index = {coord: i for i, coord in inv_coordinate_index.items()}
+valid_hexes = set(coordinate_index.keys())
