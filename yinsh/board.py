@@ -12,6 +12,18 @@ class Hex:
         self.cube = (self.q, self.r, self.s)
         self.axial = (self.q, self.r)
 
+        self._neighbours = []
+
+    def neighbours(self):
+        from yinsh.helpers import Direction, neighbour, valid_hexes
+
+        if self._neighbours == []:
+            for direction in Direction:
+                possible_neighbour = neighbour(self, direction)
+                if possible_neighbour in valid_hexes:
+                    self._neighbours.append(possible_neighbour)
+        return self._neighbours
+
     def __repr__(self):
         return f"Hex{self.axial}"
 
@@ -33,3 +45,28 @@ class Hex:
 
     def __len__(self):
         return int((abs(self.q) + abs(self.r) + abs(self.s)) / 2)
+
+
+class Board:
+    from yinsh.types import Player
+
+    def __init__(self):
+        self._grid = {}
+
+    def place_ring(self, player: Player, hex: Hex):
+        """Place a ring during setup of starting position"""
+        raise NotImplementedError
+
+    def move_ring(self, player: Player, src_hex: Hex, dst_hex: Hex):
+        """Move a ring from source to destination"""
+        raise NotImplementedError
+
+    @classmethod
+    def empty(cls):
+        """Initializes a new empty YINSH board"""
+        from yinsh.helpers import valid_hexes
+
+        board = Board()
+        board._grid = {hex: 0 for hex in valid_hexes}
+        return board
+
