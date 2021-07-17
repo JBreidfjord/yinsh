@@ -64,9 +64,5 @@ class Board:
     @classmethod
     def empty(cls):
         """Initializes a new empty YINSH board"""
-        from yinsh.helpers import valid_hexes
-
-        board = Board()
-        board._grid = {hex: 0 for hex in valid_hexes}
-        return board
+        return Board()
 
