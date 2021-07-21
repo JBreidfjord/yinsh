@@ -60,7 +60,7 @@ class Player(Enum):
 
     @property
     def other(self):
-        return Player.BLACK if self == Player.WHITE else Player.WHITE
+        return Player.BLACK if self.value else Player.WHITE
 
     def set_rings(self, num_rings: int):
         self.rings = num_rings
@@ -70,6 +70,24 @@ class Player(Enum):
 class Players:
     white = Player.WHITE
     black = Player.BLACK
+
+
+class Ring(Enum):
+    WHITE = True
+    BLACK = False
+
+    @property
+    def other(self):
+        return Ring.BLACK if self.value else Ring.WHITE
+
+
+class Marker(Enum):
+    WHITE = True
+    BLACK = False
+
+    @property
+    def other(self):
+        return Marker.BLACK if self.value else Marker.WHITE
 
 
 class Direction(Enum):
@@ -83,3 +101,8 @@ class Direction(Enum):
 
 class IllegalMoveError(Exception):
     ...
+
+
+class Outcome:
+    def __init__(self):
+        raise NotImplementedError
