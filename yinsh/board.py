@@ -30,6 +30,8 @@ class Board:
         """
         # Hexes must be valid locations
         if not {src_hex, dst_hex} <= valid_hexes:
+            if silent:
+                return False
             raise IllegalMoveError(f"Hexes must be valid board locations: {src_hex}, {dst_hex}")
 
         # A ring must move
