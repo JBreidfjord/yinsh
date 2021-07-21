@@ -1,5 +1,6 @@
-from yinsh.board import Hex
-from yinsh.types import Direction
+from __future__ import annotations
+
+from yinsh.types import Direction, Hex
 
 
 def distance(a: Hex, b: Hex):

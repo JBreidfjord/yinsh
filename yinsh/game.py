@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from yinsh.board import Board, Hex
+from yinsh.board import Board
 from yinsh.helpers import valid_hexes
-from yinsh.types import IllegalMoveError, Player, Players
+from yinsh.types import Hex, IllegalMoveError, Player, Players
 
 
 class Move:
