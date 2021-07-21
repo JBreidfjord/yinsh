@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from yinsh.board import Board
-from yinsh.helpers import valid_hexes
 from yinsh.types import Hex, IllegalMoveError, Player, Players
 
 
@@ -18,15 +17,10 @@ class Move:
 
     @classmethod
     def play(cls, src_hex: Hex, dst_hex: Hex):
-        # issubset(other)
-        if not {src_hex, dst_hex} <= valid_hexes:
-            raise IllegalMoveError(f"Hexes must be valid board locations: {src_hex}, {dst_hex}")
         return Move(src_hex, dst_hex)
 
     @classmethod
     def place(cls, hex: Hex):
-        if hex not in valid_hexes:
-            raise IllegalMoveError(f"Hex must be valid board location: {hex}")
         return Move(hex, is_starting=True)
 
     def __repr__(self):

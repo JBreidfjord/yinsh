@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from yinsh.helpers import straight_line
+from yinsh.helpers import straight_line, valid_hexes
 from yinsh.types import Hex, IllegalMoveError, Marker, Player, Ring
 
 
@@ -10,6 +10,9 @@ class Board:
 
     def place_ring(self, player: Player, hex: Hex):
         """Place a ring during setup of starting position"""
+        if hex not in valid_hexes:
+            raise IllegalMoveError(f"Hex must be valid board location: {hex}")
+
         if self._grid.get(hex) is not None:
             raise IllegalMoveError(f"Hex is not empty: {hex}")
 
@@ -25,6 +28,10 @@ class Board:
         Determines if a move would be valid for the current board state\n
         If silent is False, exceptions will be raised instead of returning
         """
+        # Hexes must be valid locations
+        if not {src_hex, dst_hex} <= valid_hexes:
+            raise IllegalMoveError(f"Hexes must be valid board locations: {src_hex}, {dst_hex}")
+
         # A ring must move
         if src_hex == dst_hex:
             if silent:
