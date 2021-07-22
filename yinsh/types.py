@@ -15,7 +15,7 @@ class Hex:
         self.cube = (self.q, self.r, self.s)
         self.axial = (self.q, self.r)
 
-        self._neighbours = []
+        self._neighbours: list[Hex] = []
 
     def neighbours(self):
         from yinsh.helpers import Direction, neighbour, valid_hexes

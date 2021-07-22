@@ -92,39 +92,41 @@ class TestBoard:
         board._grid[Hex(4, -4)] = Marker.BLACK
         assert board.is_valid_move(Hex(4, 1), Hex(4, -5))
 
-    def test_check_rows(self):
+    def test_get_rows(self):
         board = Board.empty()
-        assert board._check_rows() is []
+        assert board.get_rows() == []
 
         # Test single row
-        board._grid[Hex(0, 0)] == Marker.WHITE
-        board._grid[Hex(0, 1)] == Marker.WHITE
-        board._grid[Hex(0, 2)] == Marker.WHITE
-        board._grid[Hex(0, 3)] == Marker.WHITE
-        board._grid[Hex(0, 4)] == Marker.WHITE
-        assert board._check_rows() == [[Hex(0, 0), Hex(0, 1), Hex(0, 2), Hex(0, 3), Hex(0, 4)]]
+        board._grid[Hex(0, 0)] = Marker.WHITE
+        board._grid[Hex(0, 1)] = Marker.WHITE
+        board._grid[Hex(0, 2)] = Marker.WHITE
+        board._grid[Hex(0, 3)] = Marker.WHITE
+        board._grid[Hex(0, 4)] = Marker.WHITE
+        assert board.get_rows() == [[Hex(0, 4), Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0)]]
 
         # Test only single marker color
-        board._grid[Hex(0, 0)] == Marker.BLACK
-        assert board._check_rows() is []
+        board._grid[Hex(0, 0)] = Marker.BLACK
+        assert board.get_rows() == []
 
         # Test only markers
         board._grid[Hex(0, 0)] == Ring.WHITE
-        assert board._check_rows() is []
+        assert board.get_rows() == []
 
         # Test intersecting rows
-        board._grid[Hex(0, 0)] == Marker.WHITE
-        board._grid[Hex(1, 0)] == Marker.WHITE
-        board._grid[Hex(2, 0)] == Marker.WHITE
-        board._grid[Hex(3, 0)] == Marker.WHITE
-        board._grid[Hex(4, 0)] == Marker.WHITE
-        assert [Hex(0, 0), Hex(0, 1), Hex(0, 2), Hex(0, 3), Hex(0, 4)] in board._check_rows()
-        assert [Hex(0, 0), Hex(1, 0), Hex(2, 0), Hex(3, 0), Hex(4, 0)] in board._check_rows()
+        board._grid[Hex(0, 0)] = Marker.WHITE
+        board._grid[Hex(1, 0)] = Marker.WHITE
+        board._grid[Hex(2, 0)] = Marker.WHITE
+        board._grid[Hex(3, 0)] = Marker.WHITE
+        board._grid[Hex(4, 0)] = Marker.WHITE
+        rows = board.get_rows()
+        assert [Hex(0, 4), Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0)] in rows
+        assert [Hex(0, 0), Hex(1, 0), Hex(2, 0), Hex(3, 0), Hex(4, 0)] in rows
 
         # Test long rows
-        board._grid[Hex(0, -1)] == Marker.WHITE
-        assert [Hex(0, 0), Hex(0, 1), Hex(0, 2), Hex(0, 3), Hex(0, 4)] in board._check_rows()
-        assert [Hex(0, -1), Hex(0, 0), Hex(0, 1), Hex(0, 2), Hex(0, 3)] in board._check_rows()
+        board._grid[Hex(0, -1)] = Marker.WHITE
+        rows = board.get_rows()
+        assert [Hex(0, 4), Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0)] in rows
+        assert [Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0), Hex(0, -1)] in rows
 
     def test_move_ring(self):
         board = Board.empty()
