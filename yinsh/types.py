@@ -49,6 +49,26 @@ class Hex:
     def __len__(self):
         return int((abs(self.q) + abs(self.r) + abs(self.s)) / 2)
 
+    def __lt__(self, other: Hex):
+        if not isinstance(other, Hex):
+            raise TypeError(f"Invalid type {type(other)}")
+        return len(self) < len(other)
+
+    def __le__(self, other: Hex):
+        if not isinstance(other, Hex):
+            raise TypeError(f"Invalid type {type(other)}")
+        return len(self) <= len(other)
+
+    def __gt__(self, other: Hex):
+        if not isinstance(other, Hex):
+            raise TypeError(f"Invalid type {type(other)}")
+        return len(self) > len(other)
+
+    def __ge__(self, other: Hex):
+        if not isinstance(other, Hex):
+            raise TypeError(f"Invalid type {type(other)}")
+        return len(self) >= len(other)
+
     def scale(self, k: int):
         """Scale Hex by factor k"""
         return Hex(self.q * k, self.r * k)

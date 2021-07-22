@@ -34,11 +34,16 @@ class TestHex:
         y = Hex(2, -2, 0)
         z = Hex(-2, 4, -2)
         assert x < y < z
+        assert not x <= Hex(0, 0)
+        assert z > x
         assert z >= Hex(0, 0)
         assert x == Hex(1, 0)
+        assert not x == Hex(0, 1)
 
     def test_neighbours(self):
         x = Hex(0, 0)
-        assert sorted(x.neighbours()) == sorted(
+        assert set(x.neighbours()) == set(
             [Hex(1, 0), Hex(-1, 0), Hex(-1, 1), Hex(0, -1), Hex(1, -1), Hex(0, 1)]
         )
+        y = Hex(1, -5)
+        assert set(y.neighbours()) == set([Hex(0, -4), Hex(1, -4), Hex(2, -5)])
