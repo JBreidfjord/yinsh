@@ -30,6 +30,11 @@ class Move:
             return f"Move.place({self.src_hex})"
 
 
+class MoveGenerator:
+    def __init__(self, game: GameState):
+        self.game = game
+
+
 class GameState:
     def __init__(
         self,
@@ -91,11 +96,9 @@ class GameState:
         elif move.is_play:
             raise NotImplementedError
 
+    @property
     def legal_moves(self):
-        if self.requires_setup:
-            raise NotImplementedError
-        else:
-            raise NotImplementedError
+        return MoveGenerator(self)
 
     def display(self):
         print(self.board)
