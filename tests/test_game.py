@@ -1,5 +1,6 @@
 import pytest
 from yinsh.game import GameState, Move, MoveGenerator
+from yinsh.helpers import valid_hexes
 from yinsh.types import Hex, IllegalMoveError, Marker, Player, Ring
 
 
@@ -26,7 +27,43 @@ class TestMove:
 
 
 class TestMoveGenerator:
-    ...
+    def generate_valid(game: GameState):
+        """Iterate through rings then check all hexes for valid moves"""
+        valid = []
+        for point, content in game.board.get_rings():
+            if content.value == game.next_player.value:
+                for hex in valid_hexes:
+                    if game.board.is_valid_move(point, hex, True):
+                        valid.append(Move.play(point, hex))
+        return valid
+
+    def test_move_generator(self):
+        game = GameState.new_game()
+        assert list(MoveGenerator(game)) == [Move.place(hex) for hex in valid_hexes]
+
+        game.make_move(Move.place(Hex(0, 0)))
+        assert list(MoveGenerator(game)) == [
+            Move.place(hex) for hex in valid_hexes if hex != Hex(0, 0)
+        ]
+
+        # Place rings to finish setup
+        game.make_move(Move.place(Hex(1, 0)))
+        for i in range(4):
+            game.make_move(Move.place(Hex(-1, i)))
+            game.make_move(Move.place(Hex(i, 1)))
+
+        # Test for no place moves
+        assert MoveGenerator(game).count() > 0
+        for move in MoveGenerator(game):
+            assert move.is_play
+
+        assert set(MoveGenerator(game)) == set(self.generate_valid(game))
+
+        game.make_move(Move.play(Hex(0, 0), Hex(3, -3)))
+        assert set(MoveGenerator(game)) == set(self.generate_valid(game))
+
+        game.make_move(Move.play(Hex(0, 1), Hex(0, -1)))
+        assert set(MoveGenerator(game)) == set(self.generate_valid(game))
 
 
 class TestGameState:
