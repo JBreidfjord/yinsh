@@ -143,3 +143,34 @@ class TestBoard:
         assert board._grid[Hex(0, 2)] == Marker.BLACK
         assert board._grid[Hex(0, 3)] == Marker.WHITE
         assert board._grid[Hex(0, 4)] == Ring.WHITE
+
+    def test_display(self):
+        board = Board.empty()
+        board._grid[Hex(0, 0)] = Ring.WHITE
+        board._grid[Hex(2, -1)] = Ring.BLACK
+        board._grid[Hex(0, -1)] = Marker.WHITE
+        board._grid[Hex(1, -2)] = Marker.BLACK
+        assert (
+            repr(board)
+            == """\
+                                            •         •                                            
+                                       •         •         •                                       
+                                  •         •         •         •                                  
+                             •         •         •         •         •                             
+                                  •         •         •         •                                  
+                             •         •         •         •         •                             
+                        •         •         •         ◇         •         •                        
+                             •         •         ◈         •         •                             
+                        •         •         •         •         •         •                        
+                             •         •         ◎         ⊚         •                             
+                        •         •         •         •         •         •                        
+                             •         •         •         •         •                             
+                        •         •         •         •         •         •                        
+                             •         •         •         •         •                             
+                                  •         •         •         •                                  
+                             •         •         •         •         •                             
+                                  •         •         •         •                                  
+                                       •         •         •                                       
+                                            •         •\
+                                            """
+        )
