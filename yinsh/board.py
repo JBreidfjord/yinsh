@@ -133,13 +133,17 @@ class Board:
                             rows.append(possible_row)
         return rows
 
+    def get_rings(self):
+        """Returns a list of all rings on the board"""
+        return [hex for hex in self._grid.items() if isinstance(hex[1], Ring)]
+
     def _get_ring_count(self):
         white_rings = 0
         black_rings = 0
-        for hex in self._grid.values():
-            if hex is Ring.WHITE:
+        for _, content in self.get_rings():
+            if content is Ring.WHITE:
                 white_rings += 1
-            elif hex is Ring.BLACK:
+            elif content is Ring.BLACK:
                 black_rings += 1
         return white_rings, black_rings
 

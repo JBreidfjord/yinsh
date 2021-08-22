@@ -144,6 +144,14 @@ class TestBoard:
         assert board._grid[Hex(0, 3)] == Marker.WHITE
         assert board._grid[Hex(0, 4)] == Ring.WHITE
 
+    def test_get_rings(self):
+        board = Board.empty()
+        assert board.get_rings() == []
+
+        board._grid[Hex(0, 0)] = Ring.WHITE
+        board._grid[Hex(-3, 4)] = Ring.BLACK
+        assert set(board.get_rings()) == set([(Hex(0, 0), Ring.WHITE), (Hex(-3, 4), Ring.BLACK)])
+
     def test_display(self):
         board = Board.empty()
         board._grid[Hex(0, 0)] = Ring.WHITE
