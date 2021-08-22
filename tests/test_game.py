@@ -151,6 +151,16 @@ class TestGameState:
         assert game.next_player == Player.WHITE
         assert game.board._grid[Hex(0, 0)] == Marker.BLACK  # Flipped marker
 
+        # Test row handling
+        game.next_player = Player.BLACK
+        game.board._grid[Hex(0, 2)] = Marker.BLACK
+        game.board._grid[Hex(0, 3)] = Marker.BLACK
+        game.make_move(Move.play(Hex(0, -1), Hex(0, -2)))
+        assert game.players.black.rings == 1
+        assert game.board._get_ring_count() == (5, 4)
+        for i in range(-1, 4):
+            assert game.board._grid.get(Hex(0, i)) is None
+
     def test_legal_moves(self):
         game = GameState.new_game()
         assert isinstance(game.legal_moves, MoveGenerator)
