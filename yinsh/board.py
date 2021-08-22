@@ -100,50 +100,48 @@ class Board:
 
     def get_rows(self):
         """Returns a list of completed rows on the board"""
-        # This could probably be done better
         rows = []
-        for hex, hex_content in self._grid.items():
-            if isinstance(hex_content, Marker):
-                # only 3 directions to prevent duplicate rows
-                for direction in [Direction.N, Direction.NE, Direction.SE]:
-                    dir_hex = hex + direction.value.scale(4)
-                    if dir_hex in valid_hexes:
-                        dir_hex_content = self._grid.get(dir_hex)
-                        if dir_hex_content is None:
-                            continue
-                        elif dir_hex_content.value != hex_content.value:
-                            continue
-                        elif not isinstance(dir_hex_content, Marker):
-                            continue
+        markers = self.get_markers()
+        for hex, marker in markers.items():
+            # Only 3 directions to prevent duplicate rows
+            for direction in [Direction.N, Direction.NE, Direction.SE]:
+                dir_hex = hex + direction.value.scale(4)
+                if dir_hex in valid_hexes:
+                    dir_marker = markers.get(dir_hex)
+                    if dir_marker is None:
+                        continue
+                    elif dir_marker.value != marker.value:
+                        continue
 
-                        possible_row = straight_line(hex, dir_hex)
-                        valid = True
-                        for row_hex in possible_row[1:-1]:
-                            row_hex_content = self._grid.get(row_hex)
-                            if row_hex_content is None:
-                                valid = False
-                                break
-                            elif row_hex_content.value != hex_content.value:
-                                valid = False
-                                break
-                            elif not isinstance(row_hex_content, Marker):
-                                valid = False
-                                break
-                        if valid:
-                            rows.append(possible_row)
+                    possible_row = straight_line(hex, dir_hex)
+                    valid = True
+                    for row_hex in possible_row[1:-1]:
+                        row_marker = markers.get(row_hex)
+                        if row_marker is None:
+                            valid = False
+                            break
+                        elif row_marker.value != marker.value:
+                            valid = False
+                            break
+                    if valid:
+                        rows.append(possible_row)
         return rows
 
     def get_rings(self):
-        """Returns a list of all rings on the board"""
-        return [hex for hex in self._grid.items() if isinstance(hex[1], Ring)]
+        """Returns a dict of all rings on the board"""
+        return {k: v for k, v in self._grid.items() if isinstance(v, Ring)}
+
+    def get_markers(self):
+        """Returns a dict of all markers on the board"""
+        return {k: v for k, v in self._grid.items() if isinstance(v, Marker)}
 
     def _get_ring_count(self):
         white_rings = 0
         black_rings = 0
-        for _, content in self.get_rings():
-            if content is Ring.WHITE:
+        for _, ring in self.get_rings().items():
+            if ring.value:
                 white_rings += 1
-            elif content is Ring.BLACK:
+            else:
                 black_rings += 1
         return white_rings, black_rings
 
