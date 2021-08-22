@@ -144,24 +144,33 @@ class TestBoard:
         assert board._grid[Hex(0, 3)] == Marker.WHITE
         assert board._grid[Hex(0, 4)] == Ring.WHITE
 
-    def test_get_rings(self):
+    def test_rings(self):
         board = Board.empty()
-        assert board.get_rings() == {}
+        assert board.rings == {}
 
-        board._grid[Hex(0, 0)] = Ring.WHITE
-        board._grid[Hex(-3, 4)] = Ring.BLACK
-        assert set(board.get_rings().items()) == set(
-            [(Hex(0, 0), Ring.WHITE), (Hex(-3, 4), Ring.BLACK)]
-        )
+        board.place_ring(Player.WHITE, Hex(0, 0))
+        board.place_ring(Player.BLACK, Hex(1, 1))
+        assert set(board.rings.items()) == set([(Hex(0, 0), Ring.WHITE), (Hex(1, 1), Ring.BLACK)])
 
-    def test_get_markers(self):
+        board.move_ring(Player.WHITE, Hex(0, 0), Hex(0, -1))
+        board.move_ring(Player.BLACK, Hex(1, 1), Hex(1, 3))
+        assert set(board.rings.items()) == set([(Hex(0, -1), Ring.WHITE), (Hex(1, 3), Ring.BLACK)])
+
+    def test_markers(self):
         board = Board.empty()
-        assert board.get_markers() == {}
+        assert board.markers == {}
 
-        board._grid[Hex(0, 0)] = Marker.WHITE
-        board._grid[Hex(-3, 4)] = Marker.BLACK
-        assert set(board.get_markers().items()) == set(
-            [(Hex(0, 0), Marker.WHITE), (Hex(-3, 4), Marker.BLACK)]
+        board.place_ring(Player.WHITE, Hex(0, 0))
+        board.place_ring(Player.BLACK, Hex(1, 0))
+
+        # Test placement
+        board.move_ring(Player.WHITE, Hex(0, 0), Hex(0, -1))
+        assert set(board.markers.items()) == set([(Hex(0, 0), Marker.WHITE)])
+
+        # Test flip
+        board.move_ring(Player.BLACK, Hex(1, 0), Hex(-1, 0))
+        assert set(board.markers.items()) == set(
+            [(Hex(0, 0), Marker.BLACK), (Hex(1, 0), Marker.BLACK)]
         )
 
     def test_display(self):
