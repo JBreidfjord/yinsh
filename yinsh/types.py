@@ -100,6 +100,9 @@ class Ring(Enum):
     def other(self):
         return Ring.BLACK if self.value else Ring.WHITE
 
+    def __str__(self):
+        return "\u25CE" if self.value else "\u229A"
+
 
 class Marker(Enum):
     WHITE = True
@@ -108,6 +111,9 @@ class Marker(Enum):
     @property
     def other(self):
         return Marker.BLACK if self.value else Marker.WHITE
+
+    def __str__(self):
+        return "\u25C8" if self.value else "\u25C7"
 
 
 class Direction(Enum):

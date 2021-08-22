@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from yinsh.helpers import straight_line, valid_hexes
+from yinsh.helpers import (
+    display_index,
+    inv_coordinate_index,
+    straight_line,
+    valid_hexes,
+)
 from yinsh.types import Direction, Hex, IllegalMoveError, Marker, Player, Ring
 
 
@@ -142,4 +147,22 @@ class Board:
     def empty(cls):
         """Initializes a new empty YINSH board"""
         return Board()
+
+    def __repr__(self):
+        lines = []
+        for indices in display_index:
+            line = ""
+            for i in indices:
+                hex = inv_coordinate_index.get(i)
+                content = self._grid.get(hex)
+                if content is None:
+                    line += "\u2022"
+                else:
+                    line += str(content)
+                line += "         "  # Adds spacing between points
+            lines.append(line.strip())  # Strip to remove trailing space
+
+        lines = [f"{line:^99}" for line in lines]  # Center each line
+        out = "\n".join(lines)
+        return out
 

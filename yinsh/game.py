@@ -98,4 +98,4 @@ class GameState:
             raise NotImplementedError
 
     def display(self):
-        print(self.board._grid)
+        print(self.board)
