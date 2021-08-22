@@ -12,6 +12,8 @@ from yinsh.types import Direction, Hex, IllegalMoveError, Marker, Player, Ring
 class Board:
     def __init__(self):
         self._grid: dict[Hex, Ring | Marker | None] = {}
+        self.rings: dict[Hex, Ring] = {}
+        self.markers: dict[Hex, Marker] = {}
 
     def place_ring(self, player: Player, hex: Hex):
         """Place a ring during setup of starting position"""
@@ -22,6 +24,7 @@ class Board:
             raise IllegalMoveError(f"Hex is not empty: {hex}")
 
         self._grid[hex] = Ring.WHITE if player.value else Ring.BLACK
+        self.rings[hex] = Ring.WHITE if player.value else Ring.BLACK
 
         white_rings, black_rings = self._get_ring_count()
         if white_rings > 5 or black_rings > 5:
@@ -33,7 +36,7 @@ class Board:
         Determines if a move would be valid for the current board state\n
         If silent is False, exceptions will be raised instead of returning
         """
-        if not isinstance(self._grid.get(src_hex), Ring):
+        if self.rings.get(src_hex) is None:
             if silent:
                 return False
             raise IllegalMoveError(f"Source hex must contain ring: {src_hex}")
@@ -86,28 +89,31 @@ class Board:
     def move_ring(self, player: Player, src_hex: Hex, dst_hex: Hex):
         """Move a ring from source to destination"""
         assert self.is_valid_move(src_hex, dst_hex, silent=False)
-        if self._grid[src_hex].value != player.value:
+        if self.rings[src_hex].value != player.value:
             raise IllegalMoveError(f"Can't move opponent's ring: {src_hex}")
 
         self._grid[src_hex] = Marker.WHITE if player.value else Marker.BLACK
         self._grid[dst_hex] = Ring.WHITE if player.value else Ring.BLACK
+        del self.rings[src_hex]
+        self.rings[dst_hex] = Ring.WHITE if player.value else Ring.BLACK
+        self.markers[src_hex] = Marker.WHITE if player.value else Marker.BLACK
 
         path = straight_line(src_hex, dst_hex)
         for hex in path[1:-1]:  # Slice to skip src and dst hexes
             hex_content = self._grid.get(hex)
-            if isinstance(hex_content, Marker):
+            if hex in self.markers:
                 self._grid[hex] = hex_content.other
+                self.markers[hex] = hex_content.other
 
     def get_rows(self):
         """Returns a list of completed rows on the board"""
         rows = []
-        markers = self.get_markers()
-        for hex, marker in markers.items():
+        for hex, marker in self.markers.items():
             # Only 3 directions to prevent duplicate rows
             for direction in [Direction.N, Direction.NE, Direction.SE]:
                 dir_hex = hex + direction.value.scale(4)
                 if dir_hex in valid_hexes:
-                    dir_marker = markers.get(dir_hex)
+                    dir_marker = self.markers.get(dir_hex)
                     if dir_marker is None:
                         continue
                     elif dir_marker.value != marker.value:
@@ -116,7 +122,7 @@ class Board:
                     possible_row = straight_line(hex, dir_hex)
                     valid = True
                     for row_hex in possible_row[1:-1]:
-                        row_marker = markers.get(row_hex)
+                        row_marker = self.markers.get(row_hex)
                         if row_marker is None:
                             valid = False
                             break
@@ -127,18 +133,10 @@ class Board:
                         rows.append(possible_row)
         return rows
 
-    def get_rings(self):
-        """Returns a dict of all rings on the board"""
-        return {k: v for k, v in self._grid.items() if isinstance(v, Ring)}
-
-    def get_markers(self):
-        """Returns a dict of all markers on the board"""
-        return {k: v for k, v in self._grid.items() if isinstance(v, Marker)}
-
     def _get_ring_count(self):
         white_rings = 0
         black_rings = 0
-        for _, ring in self.get_rings().items():
+        for _, ring in self.rings.items():
             if ring.value:
                 white_rings += 1
             else:
