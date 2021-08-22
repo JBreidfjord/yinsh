@@ -11,10 +11,10 @@ class TestBoard:
     def test_ring_count(self):
         board = Board.empty()
         assert board._get_ring_count() == (0, 0)
-        board._grid[Hex(1, 0)] = Ring.WHITE
-        board._grid[Hex(-2, 3)] = Ring.BLACK
-        board._grid[Hex(4, 2)] = Ring.WHITE
-        board._grid[Hex(3, -2)] = Ring.BLACK
+        board.rings[Hex(1, 0)] = Ring.WHITE
+        board.rings[Hex(-2, 3)] = Ring.BLACK
+        board.rings[Hex(4, 2)] = Ring.WHITE
+        board.rings[Hex(3, -2)] = Ring.BLACK
         assert board._get_ring_count() == (2, 2)
 
     def test_place_ring(self):
@@ -50,10 +50,12 @@ class TestBoard:
 
         # Test valid move
         board._grid[Hex(0, 0)] = Ring.BLACK
+        board.rings[Hex(0, 0)] = Ring.BLACK
         assert board.is_valid_move(Hex(0, 0), Hex(0, -3))
 
         # Test invalid hexes
         board._grid[Hex(10, 10)] = Ring.WHITE
+        board.rings[Hex(10, 10)] = Ring.WHITE
         assert not board.is_valid_move(Hex(10, 10), Hex(-10, -10))
         with pytest.raises(IllegalMoveError):
             board.is_valid_move(Hex(10, 10), Hex(-10, -10), silent=False)
@@ -65,18 +67,21 @@ class TestBoard:
 
         # Test occupied space
         board._grid[Hex(1, 1)] = Ring.WHITE
+        board.rings[Hex(1, 1)] = Ring.WHITE
         assert not board.is_valid_move(Hex(0, 0), Hex(1, 1))
         with pytest.raises(IllegalMoveError):
             board.is_valid_move(Hex(0, 0), Hex(1, 1), silent=False)
 
         # Test non-straight line
         board._grid[Hex(4, 1)] = Ring.BLACK
+        board.rings[Hex(4, 1)] = Ring.BLACK
         assert not board.is_valid_move(Hex(4, 1), Hex(-1, 0))
         with pytest.raises(IllegalMoveError):
             board.is_valid_move(Hex(4, 1), Hex(-1, 0), silent=False)
 
         # Test jumping over rings
         board._grid[Hex(4, 0)] = Ring.WHITE
+        board.rings[Hex(4, 0)] = Ring.WHITE
         assert not board.is_valid_move(Hex(4, 1), Hex(4, -5))
         with pytest.raises(IllegalMoveError):
             board.is_valid_move(Hex(4, 1), Hex(4, -5), silent=False)
@@ -85,11 +90,15 @@ class TestBoard:
         board._grid[Hex(4, 0)] = None
         board._grid[Hex(4, -1)] = Marker.WHITE
         board._grid[Hex(4, -2)] = Marker.BLACK
+        board.markers[Hex(4, -1)] = Marker.WHITE
+        board.markers[Hex(4, -2)] = Marker.BLACK
         assert not board.is_valid_move(Hex(4, 1), Hex(4, -5))
         with pytest.raises(IllegalMoveError):
             board.is_valid_move(Hex(4, 1), Hex(4, -5), silent=False)
         board._grid[Hex(4, -3)] = Marker.WHITE
         board._grid[Hex(4, -4)] = Marker.BLACK
+        board.markers[Hex(4, -3)] = Marker.WHITE
+        board.markers[Hex(4, -4)] = Marker.BLACK
         assert board.is_valid_move(Hex(4, 1), Hex(4, -5))
 
     def test_get_rows(self):
@@ -97,33 +106,28 @@ class TestBoard:
         assert board.get_rows() == []
 
         # Test single row
-        board._grid[Hex(0, 0)] = Marker.WHITE
-        board._grid[Hex(0, 1)] = Marker.WHITE
-        board._grid[Hex(0, 2)] = Marker.WHITE
-        board._grid[Hex(0, 3)] = Marker.WHITE
-        board._grid[Hex(0, 4)] = Marker.WHITE
+        hexes = [Hex(0, 0), Hex(0, 1), Hex(0, 2), Hex(0, 3), Hex(0, 4)]
+        board.markers = {hex: Marker.WHITE for hex in hexes}
         assert board.get_rows() == [[Hex(0, 4), Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0)]]
 
         # Test only single marker color
-        board._grid[Hex(0, 0)] = Marker.BLACK
+        board.markers[Hex(0, 0)] = Marker.BLACK
         assert board.get_rows() == []
 
         # Test only markers
-        board._grid[Hex(0, 0)] == Ring.WHITE
+        board.markers[Hex(0, 0)] == Ring.WHITE
         assert board.get_rows() == []
 
         # Test intersecting rows
-        board._grid[Hex(0, 0)] = Marker.WHITE
-        board._grid[Hex(1, 0)] = Marker.WHITE
-        board._grid[Hex(2, 0)] = Marker.WHITE
-        board._grid[Hex(3, 0)] = Marker.WHITE
-        board._grid[Hex(4, 0)] = Marker.WHITE
+        hexes = [Hex(0, 0), Hex(1, 0), Hex(2, 0), Hex(3, 0), Hex(4, 0)]
+        for hex in hexes:
+            board.markers[hex] = Marker.WHITE
         rows = board.get_rows()
         assert [Hex(0, 4), Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0)] in rows
         assert [Hex(0, 0), Hex(1, 0), Hex(2, 0), Hex(3, 0), Hex(4, 0)] in rows
 
         # Test long rows
-        board._grid[Hex(0, -1)] = Marker.WHITE
+        board.markers[Hex(0, -1)] = Marker.WHITE
         rows = board.get_rows()
         assert [Hex(0, 4), Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0)] in rows
         assert [Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0), Hex(0, -1)] in rows
@@ -131,8 +135,11 @@ class TestBoard:
     def test_move_ring(self):
         board = Board.empty()
         board._grid[Hex(0, 0)] = Ring.WHITE
+        board.rings[Hex(0, 0)] = Ring.WHITE
         board._grid[Hex(0, 2)] = Marker.WHITE
         board._grid[Hex(0, 3)] = Marker.BLACK
+        board.markers[Hex(0, 2)] = Marker.WHITE
+        board.markers[Hex(0, 3)] = Marker.BLACK
 
         with pytest.raises(IllegalMoveError):
             board.move_ring(Player.BLACK, Hex(0, 0), Hex(0, 4))
