@@ -1,17 +1,35 @@
 import pytest
 from yinsh.game import GameState, Move, MoveGenerator
-from yinsh.types import Hex, IllegalMoveError, Player, Ring
+from yinsh.types import Hex, IllegalMoveError, Marker, Player, Ring
 
 
 class TestMove:
-    ...
+    def test_init(self):
+        with pytest.raises(ValueError):
+            Move(Hex(0, 0), dst_hex=Hex(0, 1), is_starting=True)
+
+    def test_play(self):
+        move = Move.play(Hex(0, 0), Hex(0, 1))
+        assert isinstance(move, Move)
+        assert move.src_hex == Hex(0, 0)
+        assert move.dst_hex == Hex(0, 1)
+        assert move.is_play
+        assert not move.is_starting
+
+    def test_place(self):
+        move = Move.place(Hex(0, 0))
+        assert isinstance(move, Move)
+        assert move.src_hex == Hex(0, 0)
+        assert move.dst_hex is None
+        assert not move.is_play
+        assert move.is_starting
 
 
 class TestMoveGenerator:
     ...
 
 
-class TestGame:
+class TestGameState:
     def test_new_game(self):
         game = GameState.new_game()
         assert game.board._grid == {}
@@ -39,6 +57,15 @@ class TestGame:
         game.players.white.rings = 0
         game.players.black.rings = 3
         assert game.is_over()
+
+    def test_outcome(self):
+        game = GameState.new_game()
+        assert game.outcome() is None
+        game.players.white.rings = 3
+        assert game.outcome().winner == Player.WHITE
+        game.players.white.rings = 0
+        game.players.black.rings = 3
+        assert game.outcome().winner == Player.BLACK
 
     def test_make_move(self):
         # See test_board.py for move validation tests
@@ -71,9 +98,21 @@ class TestGame:
         assert game.requires_setup
 
         for i in range(4):  # Place rings to finish setup
-            game.make_move(Move.place(Hex(i, 1)))
             game.make_move(Move.place(Hex(-1, i)))
+            game.make_move(Move.place(Hex(i, 1)))
         assert not game.requires_setup
+
+        game.make_move(Move.play(Hex(0, 0), Hex(0, -4)))
+        assert game.board._grid[Hex(0, 0)] == Marker.WHITE
+        assert game.board._grid[Hex(0, -4)] == Ring.WHITE
+        assert game.next_player == Player.BLACK
+        assert not game.requires_setup
+
+        game.make_move(Move.play(Hex(0, 1), Hex(0, -1)))
+        assert game.board._grid[Hex(0, 1)] == Marker.BLACK
+        assert game.board._grid[Hex(0, -1)] == Ring.BLACK
+        assert game.next_player == Player.WHITE
+        assert game.board._grid[Hex(0, 0)] == Marker.BLACK  # Flipped marker
 
     def test_legal_moves(self):
         game = GameState.new_game()
