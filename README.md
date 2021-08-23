@@ -10,6 +10,7 @@ The game itself is fully written using only the standard library so the only req
 - [x] Core functionality written in Python
 - [x] Tests for core functionality
 - [ ] Web interface written in JavaScript, with API calls to a Python FastAPI server
+- [ ] Websockets to enable online competitive play
 - [ ] Refactor core to Rust
 - [ ] Smarter AI using MCTS
 - [ ] Refactor web interface to use Rust through WebAssembly

@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', path='main.css') }}">
+</head>
+<body>
+    <div class="center">
+        <canvas id="canvas" width="600" height="630" tabindex="0">
+    </div>
+    <input type="textarea" id="coords" disabled>
+</body>
+<script type="text/javascript" src="{{ url_for('static', path='main.js') }}" onload="draw();"></script>
