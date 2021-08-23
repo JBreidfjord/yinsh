@@ -1,5 +1,5 @@
 import pytest
-from yinsh.types import Hex, IllegalMoveError
+from yinsh.types import Direction, Hex, Marker, Player, Ring
 
 
 class TestHex:
@@ -47,3 +47,59 @@ class TestHex:
         )
         y = Hex(1, -5)
         assert set(y.neighbours()) == set([Hex(0, -4), Hex(1, -4), Hex(2, -5)])
+
+
+class TestPlayer:
+    def test_enum(self):
+        assert Player.WHITE.value
+        assert not Player.BLACK.value
+
+    def test_other(self):
+        assert not Player.WHITE.other.value
+        assert Player.BLACK.other.value
+
+    def test_rings(self):
+        player = Player.WHITE
+        player.set_rings(0)
+        assert player.rings == 0
+
+        player.rings += 1
+        assert player.rings == 1
+
+
+class TestRing:
+    def test_enum(self):
+        assert Ring.WHITE.value
+        assert not Marker.BLACK.value
+
+    def test_other(self):
+        assert not Ring.WHITE.other.value
+        assert Ring.BLACK.other.value
+
+    def test_str(self):
+        assert str(Ring.WHITE) == "◎"
+        assert str(Ring.BLACK) == "⊚"
+
+
+class TestMarker:
+    def test_enum(self):
+        assert Marker.WHITE.value
+        assert not Marker.BLACK.value
+
+    def test_other(self):
+        assert not Marker.WHITE.other.value
+        assert Marker.BLACK.other.value
+
+    def test_str(self):
+        assert str(Marker.WHITE) == "◈"
+        assert str(Marker.BLACK) == "◇"
+
+
+class TestDirection:
+    def test_enum(self):
+        assert Direction.N.value == Hex(0, -1)
+        assert Direction.NE.value == Hex(1, -1)
+        assert Direction.SE.value == Hex(1, 0)
+        assert Direction.S.value == Hex(0, 1)
+        assert Direction.SW.value == Hex(-1, 1)
+        assert Direction.NW.value == Hex(-1, 0)
