@@ -5,10 +5,10 @@ from enum import Enum
 
 
 class Hex:
-    def __init__(self, q: int, r: int, s: int = None):
+    def __init__(self, q: float, r: float, s: float = None):
         """Data structure representing a hex coordinate using a cube/axial system"""
         self.s = s if s is not None else -q - r
-        if q + r + self.s != 0:
+        if q + r + self.s > 1e-7:
             raise ValueError("Coordinates must sum to 0")
         self.q = q
         self.r = r
