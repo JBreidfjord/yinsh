@@ -126,6 +126,7 @@ class GameState:
         return (
             self.players.white.rings == self._rings_to_win
             or self.players.black.rings == self._rings_to_win
+            or self.legal_moves.count() == 0
         )
 
     def outcome(self):
@@ -133,6 +134,15 @@ class GameState:
             return Outcome(winner=Player.WHITE)
         elif self.players.black.rings == self._rings_to_win:
             return Outcome(winner=Player.BLACK)
+        elif self.legal_moves.count() == 0:
+            if self.players.white.rings == self.players.black.rings:
+                return Outcome(winner="DRAW")
+            else:
+                return Outcome(
+                    winner=Player.WHITE
+                    if self.players.white.rings > self.players.black.rings
+                    else Player.BLACK
+                )
 
     def make_move(self, move: Move):
         if move.is_play and self.requires_setup:
@@ -155,22 +165,44 @@ class GameState:
             self.next_player = self.next_player.other
 
     def _handle_rows(self):
-        rows = self.board.get_rows()
-        if rows:
+        def handler(rows: list[list[Hex]], player: Player):
+            self.display_rows(rows)
+            print(player)
             if len(rows) == 1:
                 row = rows[0]
             else:
-                self.display_rows(rows)
                 choice = int(input("Input numeric selection: "))
                 row = rows[choice]
 
+            rings_fmt = [
+                str(r.axial) for r in self.board.rings if self.board.rings[r].value == player.value
+            ]
+            print(" | ".join(rings_fmt))
             ring_coords = ast.literal_eval(input("Input coords for ring (x, y): "))
-            ring_hex = Hex(ring_coords[0], ring_coords[1])
+            ring_hex = Hex(*ring_coords)
             self.board._complete_row(row, ring_hex)
+
+        player_rows = self.board.get_rows(self.next_player)
+        while player_rows:
             if self.next_player.value:
                 self.players.white.rings += 1
             else:
                 self.players.black.rings += 1
+            if self.is_over():
+                return
+            handler(player_rows, self.next_player)
+            player_rows = self.board.get_rows(self.next_player)
+
+        opponent_rows = self.board.get_rows(self.next_player.other)
+        while opponent_rows:
+            if self.next_player.other.value:
+                self.players.white.rings += 1
+            else:
+                self.players.black.rings += 1
+            if self.is_over():
+                return
+            handler(opponent_rows, self.next_player.other)
+            opponent_rows = self.board.get_rows(self.next_player.other)
 
     @property
     def legal_moves(self):
@@ -198,7 +230,7 @@ class GameState:
                 else:
                     content = self.board._grid.get(hex)
                     if content is None:
-                        line += "\u2022"
+                        line += "\u00B7"
                     else:
                         line += str(content)
                 line += "         "  # Adds spacing between points
@@ -208,7 +240,9 @@ class GameState:
 
         # Add row options to lines
         for i, row in enumerate(rows):
-            lines[i] += f"{i}) {[hex.axial for hex in row]}"
+            lines[i] += f"{i}) {[hex.axial for hex in sorted(row)]}"
 
+        lines.insert(0, "")
+        lines.append("")
         out = "\n".join(lines)
         print(out)

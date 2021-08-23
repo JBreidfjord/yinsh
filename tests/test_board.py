@@ -103,34 +103,42 @@ class TestBoard:
 
     def test_get_rows(self):
         board = Board.empty()
-        assert board.get_rows() == []
+        assert board.get_rows(Player.WHITE) == []
+        assert board.get_rows(Player.BLACK) == []
 
         # Test single row
         hexes = [Hex(0, 0), Hex(0, 1), Hex(0, 2), Hex(0, 3), Hex(0, 4)]
         board.markers = {hex: Marker.WHITE for hex in hexes}
-        assert board.get_rows() == [[Hex(0, 4), Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0)]]
+        assert board.get_rows(Player.WHITE) == [
+            [Hex(0, 4), Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0)]
+        ]
+        assert board.get_rows(Player.BLACK) == []
 
         # Test only single marker color
         board.markers[Hex(0, 0)] = Marker.BLACK
-        assert board.get_rows() == []
+        assert board.get_rows(Player.WHITE) == []
+        assert board.get_rows(Player.BLACK) == []
 
         # Test only markers
         board.markers[Hex(0, 0)] == Ring.WHITE
-        assert board.get_rows() == []
+        assert board.get_rows(Player.WHITE) == []
+        assert board.get_rows(Player.BLACK) == []
 
         # Test intersecting rows
         hexes = [Hex(0, 0), Hex(1, 0), Hex(2, 0), Hex(3, 0), Hex(4, 0)]
         for hex in hexes:
             board.markers[hex] = Marker.WHITE
-        rows = board.get_rows()
+        rows = board.get_rows(Player.WHITE)
         assert [Hex(0, 4), Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0)] in rows
         assert [Hex(0, 0), Hex(1, 0), Hex(2, 0), Hex(3, 0), Hex(4, 0)] in rows
+        assert board.get_rows(Player.BLACK) == []
 
         # Test long rows
         board.markers[Hex(0, -1)] = Marker.WHITE
-        rows = board.get_rows()
+        rows = board.get_rows(Player.WHITE)
         assert [Hex(0, 4), Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0)] in rows
         assert [Hex(0, 3), Hex(0, 2), Hex(0, 1), Hex(0, 0), Hex(0, -1)] in rows
+        assert board.get_rows(Player.BLACK) == []
 
     def test_move_ring(self):
         board = Board.empty()
@@ -188,27 +196,27 @@ class TestBoard:
         board._grid[Hex(1, -2)] = Marker.BLACK
         assert (
             repr(board)
-            == """\
-                                            •         •                                            
-                                       •         •         •                                       
-                                  •         •         •         •                                  
-                             •         •         •         •         •                             
-                                  •         •         •         •                                  
-                             •         •         •         •         •                             
-                        •         •         •         ◇         •         •                        
-                             •         •         ◈         •         •                             
-                        •         •         •         •         •         •                        
-                             •         •         ◎         ⊚         •                             
-                        •         •         •         •         •         •                        
-                             •         •         •         •         •                             
-                        •         •         •         •         •         •                        
-                             •         •         •         •         •                             
-                                  •         •         •         •                                  
-                             •         •         •         •         •                             
-                                  •         •         •         •                                  
-                                       •         •         •                                       
-                                            •         •\
-                                            """
+            == """\n\
+                                            ·         ·                                            
+                                       ·         ·         ·                                       
+                                  ·         ·         ·         ·                                  
+                             ·         ·         ·         ·         ·                             
+                                  ·         ·         ·         ·                                  
+                             ·         ·         ·         ·         ·                             
+                        ·         ·         ·         ◇         ·         ·                        
+                             ·         ·         ◈         ·         ·                             
+                        ·         ·         ·         ·         ·         ·                        
+                             ·         ·         ◎         ⊚         ·                             
+                        ·         ·         ·         ·         ·         ·                        
+                             ·         ·         ·         ·         ·                             
+                        ·         ·         ·         ·         ·         ·                        
+                             ·         ·         ·         ·         ·                             
+                                  ·         ·         ·         ·                                  
+                             ·         ·         ·         ·         ·                             
+                                  ·         ·         ·         ·                                  
+                                       ·         ·         ·                                       
+                                            ·         ·\
+                                            \n"""
         )
 
     def test_complete_row(self):

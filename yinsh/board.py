@@ -105,10 +105,12 @@ class Board:
                 self._grid[hex] = hex_content.other
                 self.markers[hex] = hex_content.other
 
-    def get_rows(self):
+    def get_rows(self, player: Player):
         """Returns a list of completed rows on the board"""
-        rows = []
+        rows: list[list[Hex]] = []
         for hex, marker in self.markers.items():
+            if marker.value != player.value:
+                continue
             # Only 3 directions to prevent duplicate rows
             for direction in [Direction.N, Direction.NE, Direction.SE]:
                 dir_hex = hex + direction.value.scale(4)
@@ -165,13 +167,15 @@ class Board:
                 hex = inv_coordinate_index.get(i)
                 content = self._grid.get(hex)
                 if content is None:
-                    line += "\u2022"
+                    line += "\u00B7"
                 else:
                     line += str(content)
                 line += "         "  # Adds spacing between points
             lines.append(line.strip())  # Strip to remove trailing space
 
         lines = [f"{line:^99}" for line in lines]  # Center each line
+        lines.insert(0, "")
+        lines.append("")
         out = "\n".join(lines)
         return out
 
