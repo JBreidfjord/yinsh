@@ -143,6 +143,15 @@ class Board:
                 black_rings += 1
         return white_rings, black_rings
 
+    def _complete_row(self, row: list[Hex], ring_hex: Hex):
+        if self._grid[row[0]].value != self._grid[ring_hex].value:
+            raise ValueError(f"Cannot remove opponent's ring: {ring_hex}")
+        del self._grid[ring_hex]
+        del self.rings[ring_hex]
+        for hex in row:
+            del self._grid[hex]
+            del self.markers[hex]
+
     @classmethod
     def empty(cls):
         """Initializes a new empty YINSH board"""

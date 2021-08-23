@@ -210,3 +210,31 @@ class TestBoard:
                                             •         •\
                                             """
         )
+
+    def test_complete_row(self):
+        board = Board.empty()
+        row = [Hex(0, 0), Hex(0, 1), Hex(0, 2), Hex(0, 3), Hex(0, 4)]
+        white_ring = Hex(-1, -1)
+        black_ring = Hex(-1, 0)
+        board._grid = {hex: Marker.WHITE for hex in row}
+        board.markers = {hex: Marker.WHITE for hex in row}
+        board._grid[white_ring] = Ring.WHITE
+        board.rings[white_ring] = Ring.WHITE
+        board._grid[black_ring] = Ring.BLACK
+        board.rings[black_ring] = Ring.BLACK
+
+        board._complete_row(row, white_ring)
+        assert board._grid == {black_ring: Ring.BLACK}
+        assert board.rings == {black_ring: Ring.BLACK}
+        assert board.markers == {}
+
+        board._grid = {hex: Marker.WHITE for hex in row}
+        board.markers = {hex: Marker.WHITE for hex in row}
+        board._grid[white_ring] = Ring.WHITE
+        board.rings[white_ring] = Ring.WHITE
+        board._grid[black_ring] = Ring.BLACK
+        board.rings[black_ring] = Ring.BLACK
+
+        # Test removing opposite color
+        with pytest.raises(ValueError):
+            board._complete_row(row, black_ring)
