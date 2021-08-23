@@ -27,10 +27,10 @@ class TestMove:
 
 
 class TestMoveGenerator:
-    def generate_valid(game: GameState):
+    def generate_valid(self, game: GameState):
         """Iterate through rings then check all hexes for valid moves"""
         valid = []
-        for point, content in game.board.get_rings():
+        for point, content in game.board.rings.items():
             if content.value == game.next_player.value:
                 for hex in valid_hexes:
                     if game.board.is_valid_move(point, hex):
@@ -39,12 +39,12 @@ class TestMoveGenerator:
 
     def test_move_generator(self):
         game = GameState.new_game()
-        assert list(MoveGenerator(game)) == [Move.place(hex) for hex in valid_hexes]
+        assert set(MoveGenerator(game)) == {Move.place(hex) for hex in valid_hexes}
 
         game.make_move(Move.place(Hex(0, 0)))
-        assert list(MoveGenerator(game)) == [
+        assert set(MoveGenerator(game)) == {
             Move.place(hex) for hex in valid_hexes if hex != Hex(0, 0)
-        ]
+        }
 
         # Place rings to finish setup
         game.make_move(Move.place(Hex(1, 0)))

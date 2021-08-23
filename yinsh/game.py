@@ -4,8 +4,8 @@ import ast
 from typing import Iterator
 
 from yinsh.board import Board
-from yinsh.helpers import display_index, inv_coordinate_index
-from yinsh.types import Hex, IllegalMoveError, Outcome, Player, Players
+from yinsh.helpers import display_index, inv_coordinate_index, valid_hexes
+from yinsh.types import Direction, Hex, IllegalMoveError, Outcome, Player, Players
 
 
 class Move:
@@ -33,6 +33,12 @@ class Move:
         else:
             return f"Move.place({self.src_hex})"
 
+    def __hash__(self):
+        return hash((self.src_hex, self.dst_hex))
+
+    def __eq__(self, other: Move):
+        return self.src_hex == other.src_hex and self.dst_hex == other.dst_hex
+
 
 class MoveGenerator:
     def __init__(self, game: GameState):
@@ -42,10 +48,40 @@ class MoveGenerator:
         return self._generate_legal_moves()
 
     def _generate_legal_moves(self) -> Iterator[Move]:
-        ...
+        yield from self._generate_starting() if self.game.requires_setup else self._generate_play()
+
+    def _generate_starting(self):
+        yield from [Move.place(hex) for hex in valid_hexes ^ set(self.game.board._grid.keys())]
+
+    def _generate_play(self):
+        for hex, ring in self.game.board.rings.items():
+            if ring.value != self.game.next_player.value:
+                continue
+            # Iterate through each direction, checking each Hex
+            # in that direction until an illegal move or the edge is found
+            for direction in Direction:
+                _prev_is_marker = False
+                current_hex = hex + direction.value
+                while current_hex in valid_hexes:
+                    if self.game.board.rings.get(current_hex) is not None:
+                        # Break from this direction upon reaching another ring
+                        break
+
+                    if self.game.board.markers.get(current_hex) is not None:
+                        _prev_is_marker = True
+                        current_hex += direction.value
+                        continue  # Current Hex won't be valid so we can continue
+
+                    # Current Hex must be empty if we reach this point
+                    yield Move.play(hex, current_hex)
+                    if _prev_is_marker:
+                        # Break from this direction after first empty space following a marker
+                        break
+
+                    current_hex += direction.value
 
     def count(self):
-        len(list(self))
+        return len(list(self))
 
 
 class GameState:
