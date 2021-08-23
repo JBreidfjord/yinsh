@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+import ast
+from typing import Iterator
+
 from yinsh.board import Board
-from yinsh.types import Hex, IllegalMoveError, Player, Players
+from yinsh.helpers import display_index, inv_coordinate_index
+from yinsh.types import Hex, IllegalMoveError, Outcome, Player, Players
 
 
 class Move:
     def __init__(self, src_hex: Hex, dst_hex: Hex = None, is_starting: bool = False):
-        # Replace with proper exception
-        assert (dst_hex is not None) ^ is_starting, "Move takes exactly 1 type of move as input"
+        if not (dst_hex is not None) ^ is_starting:
+            raise ValueError("Move takes exactly 1 type of move as input")
 
         self.src_hex = src_hex
         self.dst_hex = dst_hex
@@ -33,6 +37,15 @@ class Move:
 class MoveGenerator:
     def __init__(self, game: GameState):
         self.game = game
+
+    def __iter__(self):
+        return self._generate_legal_moves()
+
+    def _generate_legal_moves(self) -> Iterator[Move]:
+        ...
+
+    def count(self):
+        len(list(self))
 
 
 class GameState:
@@ -64,11 +77,8 @@ class GameState:
         Pass variant argument "blitz" for a shorter game,
         otherwise standard game length will be used
         """
-        # Replace with proper exception
-        assert variant in [
-            "standard",
-            "blitz",
-        ], "Variant must be 'standard', 'blitz', or not given"
+        if variant not in ["standard", "blitz"]:
+            raise ValueError("Variant must be 'standard', 'blitz', or not given")
 
         players = Players()
         players.white.set_rings(0)
@@ -76,12 +86,17 @@ class GameState:
 
         return GameState(Board.empty(), players, players.white, None, None, variant, is_setup=False)
 
-    def is_over(self, outcome: bool = False):
-        # Return Outcome object if True
+    def is_over(self):
         return (
             self.players.white.rings == self._rings_to_win
             or self.players.black.rings == self._rings_to_win
         )
+
+    def outcome(self):
+        if self.players.white.rings == self._rings_to_win:
+            return Outcome(winner=Player.WHITE)
+        elif self.players.black.rings == self._rings_to_win:
+            return Outcome(winner=Player.BLACK)
 
     def make_move(self, move: Move):
         if move.is_play and self.requires_setup:
@@ -92,9 +107,34 @@ class GameState:
             raise IllegalMoveError("Game is over")
 
         if move.is_starting:
-            raise NotImplementedError
+            self.board.place_ring(self.next_player, move.src_hex)
+            self.next_player = self.next_player.other
+            white_rings, black_rings = self.board._get_ring_count()
+            if white_rings == 5 and black_rings == 5:
+                self.requires_setup = False
+
         elif move.is_play:
-            raise NotImplementedError
+            self.board.move_ring(self.next_player, move.src_hex, move.dst_hex)
+            self._handle_rows()
+            self.next_player = self.next_player.other
+
+    def _handle_rows(self):
+        rows = self.board.get_rows()
+        if rows:
+            if len(rows) == 1:
+                row = rows[0]
+            else:
+                self.display_rows(rows)
+                choice = int(input("Input numeric selection: "))
+                row = rows[choice]
+
+            ring_coords = ast.literal_eval(input("Input coords for ring (x, y): "))
+            ring_hex = Hex(ring_coords[0], ring_coords[1])
+            self.board._complete_row(row, ring_hex)
+            if self.next_player.value:
+                self.players.white.rings += 1
+            else:
+                self.players.black.rings += 1
 
     @property
     def legal_moves(self):

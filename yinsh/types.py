@@ -129,6 +129,6 @@ class IllegalMoveError(Exception):
     ...
 
 
+@dataclass
 class Outcome:
-    def __init__(self):
-        raise NotImplementedError
+    winner: Player
