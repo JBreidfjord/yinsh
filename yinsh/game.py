@@ -142,3 +142,37 @@ class GameState:
 
     def display(self):
         print(self.board)
+
+    def display_rows(self, rows: list[list[Hex]]):
+        "Displays board with possible rows highlighted and numbered options for selection"
+        lines = []
+
+        # Extract individual hexes
+        row_hexes: list[Hex] = []
+        [row_hexes.extend(row) for row in rows]
+        row_hexes = set(row_hexes)
+
+        for indices in display_index:
+            line = ""
+            for i in indices:
+                hex = inv_coordinate_index.get(i)
+                if hex in row_hexes:
+                    marker = self.board.markers.get(hex)
+                    line += "\u2727" if marker.value else "\u2726"
+                else:
+                    content = self.board._grid.get(hex)
+                    if content is None:
+                        line += "\u2022"
+                    else:
+                        line += str(content)
+                line += "         "  # Adds spacing between points
+            lines.append(line.strip())  # Strip to remove trailing space
+
+        lines = [f"{line:^52}" for line in lines]  # Center each line
+
+        # Add row options to lines
+        for i, row in enumerate(rows):
+            lines[i] += f"{i}) {[hex.axial for hex in row]}"
+
+        out = "\n".join(lines)
+        print(out)
