@@ -73,8 +73,6 @@ class TestGameState:
         assert game.next_player == Player.WHITE
         assert game.players.white.rings == 0
         assert game.players.black.rings == 0
-        assert game.previous_state == None
-        assert game.last_move == None
         assert game.variant == "standard"
         assert game.requires_setup
         assert game._rings_to_win == 3

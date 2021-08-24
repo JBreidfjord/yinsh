@@ -90,16 +90,12 @@ class GameState:
         board: Board,
         players: Players,
         next_player: Player,
-        previous: GameState,
-        move: Move,
         variant: str,
         is_setup: bool = True,
     ):
         self.board = board
         self.players = players
         self.next_player = next_player
-        self.previous_state = previous
-        self.last_move = move
         self.variant = variant
 
         self.requires_setup = not is_setup
@@ -120,7 +116,7 @@ class GameState:
         players.white.set_rings(0)
         players.black.set_rings(0)
 
-        return GameState(Board.empty(), players, players.white, None, None, variant, is_setup=False)
+        return GameState(Board.empty(), players, players.white, variant, is_setup=False)
 
     def is_over(self):
         return (
