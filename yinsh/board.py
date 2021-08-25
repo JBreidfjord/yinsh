@@ -1,11 +1,6 @@
 from __future__ import annotations
 
-from yinsh.helpers import (
-    display_index,
-    inv_coordinate_index,
-    straight_line,
-    valid_hexes,
-)
+from yinsh.helpers import inv_coordinate_index, straight_line, valid_hexes
 from yinsh.types import Direction, Hex, IllegalMoveError, Marker, Player, Ring
 
 
@@ -145,37 +140,16 @@ class Board:
                 black_rings += 1
         return white_rings, black_rings
 
-    def _complete_row(self, row: list[Hex], ring_hex: Hex):
-        if self._grid[row[0]].value != self._grid[ring_hex].value:
-            raise ValueError(f"Cannot remove opponent's ring: {ring_hex}")
-        del self._grid[ring_hex]
-        del self.rings[ring_hex]
+    def _complete_row(self, row: list[Hex]):
         for hex in row:
             del self._grid[hex]
             del self.markers[hex]
+
+    def _remove_ring(self, hex: Hex):
+        del self._grid[hex]
+        del self.rings[hex]
 
     @classmethod
     def empty(cls):
         """Initializes a new empty YINSH board"""
         return Board()
-
-    def __repr__(self):
-        lines = []
-        for indices in display_index:
-            line = ""
-            for i in indices:
-                hex = inv_coordinate_index.get(i)
-                content = self._grid.get(hex)
-                if content is None:
-                    line += "\u00B7"
-                else:
-                    line += str(content)
-                line += "         "  # Adds spacing between points
-            lines.append(line.strip())  # Strip to remove trailing space
-
-        lines = [f"{line:^99}" for line in lines]  # Center each line
-        lines.insert(0, "")
-        lines.append("")
-        out = "\n".join(lines)
-        return out
-

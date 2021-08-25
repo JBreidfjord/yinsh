@@ -188,38 +188,8 @@ class TestBoard:
             [(Hex(0, 0), Marker.BLACK), (Hex(1, 0), Marker.BLACK)]
         )
 
-    def test_display(self):
-        board = Board.empty()
-        board._grid[Hex(0, 0)] = Ring.WHITE
-        board._grid[Hex(2, -1)] = Ring.BLACK
-        board._grid[Hex(0, -1)] = Marker.WHITE
-        board._grid[Hex(1, -2)] = Marker.BLACK
-        assert (
-            repr(board)
-            == """\n\
-                                            ·         ·                                            
-                                       ·         ·         ·                                       
-                                  ·         ·         ·         ·                                  
-                             ·         ·         ·         ·         ·                             
-                                  ·         ·         ·         ·                                  
-                             ·         ·         ·         ·         ·                             
-                        ·         ·         ·         ◇         ·         ·                        
-                             ·         ·         ◈         ·         ·                             
-                        ·         ·         ·         ·         ·         ·                        
-                             ·         ·         ◎         ⊚         ·                             
-                        ·         ·         ·         ·         ·         ·                        
-                             ·         ·         ·         ·         ·                             
-                        ·         ·         ·         ·         ·         ·                        
-                             ·         ·         ·         ·         ·                             
-                                  ·         ·         ·         ·                                  
-                             ·         ·         ·         ·         ·                             
-                                  ·         ·         ·         ·                                  
-                                       ·         ·         ·                                       
-                                            ·         ·\
-                                            \n"""
-        )
-
     def test_complete_row(self):
+        # split into _complete_row and _remove_ring
         board = Board.empty()
         row = [Hex(0, 0), Hex(0, 1), Hex(0, 2), Hex(0, 3), Hex(0, 4)]
         white_ring = Hex(-1, -1)

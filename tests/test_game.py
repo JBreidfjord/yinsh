@@ -149,27 +149,6 @@ class TestGameState:
         assert game.next_player == Player.WHITE
         assert game.board._grid[Hex(0, 0)] == Marker.BLACK  # Flipped marker
 
-    def test_handle_single_row(self, monkeypatch):
-        game = GameState.new_game()
-        game.requires_setup = False
-        game.next_player = Player.BLACK
-        row = [Hex(0, 0), Hex(0, 1), Hex(0, 2), Hex(0, 3), Hex(0, 4)]
-        game.board._grid = {hex: Marker.BLACK for hex in row}
-        game.board.markers = {hex: Marker.BLACK for hex in row}
-        black_ring = Hex(-1, 0)
-        game.board._grid[black_ring] = Ring.BLACK
-        game.board.rings[black_ring] = Ring.BLACK
-
-        monkeypatch.setattr("builtins.input", lambda _: "(-1, -2)")
-        game.make_move(Move.play(Hex(-1, 0), Hex(-1, -2)))
-        assert game.players.black.rings == 1
-        assert game.board._get_ring_count() == (0, 0)
-        for i in range(0, 4):
-            assert game.board._grid.get(Hex(0, i)) is None
-            assert game.board.markers.get(Hex(0, i)) is None
-        assert game.board.rings.get(Hex(-1, 0)) is None
-        assert game.board.rings.get(Hex(-1, -2)) is None
-
     def test_legal_moves(self):
         game = GameState.new_game()
         assert isinstance(game.legal_moves, MoveGenerator)

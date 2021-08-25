@@ -4,7 +4,7 @@ import ast
 from typing import Iterator
 
 from yinsh.board import Board
-from yinsh.helpers import display_index, inv_coordinate_index, valid_hexes
+from yinsh.helpers import inv_coordinate_index, valid_hexes
 from yinsh.types import (
     Direction,
     Hex,
@@ -195,88 +195,18 @@ class GameState:
 
         elif move.is_play:
             self.board.move_ring(self.next_player, move.src_hex, move.dst_hex)
-            self._handle_rows()
             self.next_player = self.next_player.other
 
-    def _handle_rows(self):
-        def handler(rows: list[list[Hex]], player: Player):
-            self.display_rows(rows)
-            print(player)
-            if len(rows) == 1:
-                row = rows[0]
-            else:
-                choice = int(input("Input numeric selection: "))
-                row = rows[choice]
+    def complete_row(self, row: list[Hex]):
+        self.board._complete_row(row)
 
-            rings_fmt = [
-                str(r.axial) for r in self.board.rings if self.board.rings[r].value == player.value
-            ]
-            print(" | ".join(rings_fmt))
-            ring_coords = ast.literal_eval(input("Input coords for ring (x, y): "))
-            ring_hex = Hex(*ring_coords)
-            self.board._complete_row(row, ring_hex)
-
-        player_rows = self.board.get_rows(self.next_player)
-        while player_rows:
-            if self.next_player.value:
-                self.players.white.rings += 1
-            else:
-                self.players.black.rings += 1
-            if self.is_over():
-                return
-            handler(player_rows, self.next_player)
-            player_rows = self.board.get_rows(self.next_player)
-
-        opponent_rows = self.board.get_rows(self.next_player.other)
-        while opponent_rows:
-            if self.next_player.other.value:
-                self.players.white.rings += 1
-            else:
-                self.players.black.rings += 1
-            if self.is_over():
-                return
-            handler(opponent_rows, self.next_player.other)
-            opponent_rows = self.board.get_rows(self.next_player.other)
+    def remove_ring(self, hex: Hex):
+        if self.board.rings[hex].value:
+            self.players.white.rings += 1
+        else:
+            self.players.black.rings += 1
+        self.board._remove_ring(hex)
 
     @property
     def legal_moves(self):
         return MoveGenerator(self)
-
-    def display(self):
-        print(self.board)
-
-    def display_rows(self, rows: list[list[Hex]]):
-        "Displays board with possible rows highlighted and numbered options for selection"
-        lines = []
-
-        # Extract individual hexes
-        row_hexes: list[Hex] = []
-        [row_hexes.extend(row) for row in rows]
-        row_hexes = set(row_hexes)
-
-        for indices in display_index:
-            line = ""
-            for i in indices:
-                hex = inv_coordinate_index.get(i)
-                if hex in row_hexes:
-                    marker = self.board.markers.get(hex)
-                    line += "\u2727" if marker.value else "\u2726"
-                else:
-                    content = self.board._grid.get(hex)
-                    if content is None:
-                        line += "\u00B7"
-                    else:
-                        line += str(content)
-                line += "         "  # Adds spacing between points
-            lines.append(line.strip())  # Strip to remove trailing space
-
-        lines = [f"{line:^52}" for line in lines]  # Center each line
-
-        # Add row options to lines
-        for i, row in enumerate(rows):
-            lines[i] += f"{i}) {[hex.axial for hex in sorted(row)]}"
-
-        lines.insert(0, "")
-        lines.append("")
-        out = "\n".join(lines)
-        print(out)

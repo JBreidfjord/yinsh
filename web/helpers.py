@@ -3,7 +3,7 @@ from random import choice
 
 from yinsh.game import GameState, Move
 from yinsh.helpers import coordinate_index
-from yinsh.types import Hex, IllegalMoveError, Marker, Ring
+from yinsh.types import Hex, IllegalMoveError, Marker, Player, Ring
 
 content_index = {None: 0, Ring.WHITE: 1, Ring.BLACK: 2, Marker.WHITE: 3, Marker.BLACK: 4}
 inv_content_index = {v: k for k, v in content_index.items()}
@@ -26,7 +26,7 @@ def handle_play(src_hex: Hex, dst_hex: Hex, game: GameState):
     move = Move.play(src_hex, dst_hex)
     try:
         game.make_move(move)
-        return dump_data(game)
+        return dump_data(game, get_rows(game))
     except IllegalMoveError:
         return
 
@@ -49,6 +49,24 @@ def handle_bot(game: GameState):
     return dump_data(game)
 
 
+def handle_row(data: dict):
+    row = [Hex(*hex.values()) for hex in data["row"]]
+    game = GameState.parse_state(data["state"])
+    game.complete_row(row)
+    return dump_data(game, get_rows(game))
+
+
+def handle_ring(hex: Hex, game: GameState):
+    game.remove_ring(hex)
+    return dump_data(game, get_rows(game))
+
+
+def get_rows(game: GameState):
+    white = [[coordinate_index[hex] for hex in row] for row in game.board.get_rows(Player.WHITE)]
+    black = [[coordinate_index[hex] for hex in row] for row in game.board.get_rows(Player.BLACK)]
+    return {"w": white, "b": black}
+
+
 def parse_data(data: dict):
     hex = data.get("action")
     if hex is not None:
@@ -65,7 +83,7 @@ def parse_play_data(data: dict):
     return src_hex, dst_hex, game
 
 
-def dump_data(game: GameState):
+def dump_data(game: GameState, rows: dict = {}):
     grid = {
         coordinate_index[hex]: content_index[content] for hex, content in game.board._grid.items()
     }
@@ -74,6 +92,7 @@ def dump_data(game: GameState):
             "grid": grid,
             "rings": {"white": game.players.white.rings, "black": game.players.black.rings},
             "requiresSetup": game.requires_setup,
+            "rows": rows,
         }
     }
     return json.dumps(data)

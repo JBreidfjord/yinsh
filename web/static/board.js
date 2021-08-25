@@ -139,6 +139,43 @@ function drawMarker(hex, color) {
   ctx.stroke();
 }
 
+function highlightMarkers(row, color) {
+  let ctx = canvas.getContext("2d");
+  row.forEach((hex) => {
+    let pos = hex_to_pixel(hex);
+    ctx.beginPath();
+    if (color) {
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "black";
+    } else {
+      ctx.fillStyle = "black";
+      ctx.strokeStyle = "black";
+    }
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, size * 0.75, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
+}
+
+function highlightRings(hex, color) {
+  let ctx = canvas.getContext("2d");
+  let pos = hex_to_pixel(hex);
+  if (color) {
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+  } else {
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "black";
+  }
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, size * 0.85, 0, Math.PI * 2);
+  ctx.moveTo(pos.x + size * 0.6, pos.y);
+  ctx.arc(pos.x, pos.y, size * 0.6, 0, Math.PI * 2);
+  ctx.fill("evenodd");
+  ctx.stroke();
+}
+
 function get_coord(col, row) {
   let tw = (col + 5) / 10;
   let th = (row - 1) / 18;
@@ -194,8 +231,8 @@ function getPosition(e) {
 }
 
 function printPosition(e) {
-  let position = getPosition(e);
-  let hex = pixel_to_hex(position.x, position.y);
+  let pos = getPosition(e);
+  let hex = pixel_to_hex(pos.x, pos.y);
   if (
     Math.abs(hex.q) + Math.abs(hex.r) < 10 &&
     Math.abs(hex.q) <= 5 &&
@@ -207,7 +244,7 @@ function printPosition(e) {
   }
 }
 
-let grid_index = {
+let gridIndex = {
   0: new Hex(0, 0),
   1: new Hex(-5, 1),
   2: new Hex(-5, 2),
@@ -294,4 +331,4 @@ let grid_index = {
   83: new Hex(5, -2),
   84: new Hex(5, -1),
 };
-let inv_grid_index = Object.values(grid_index);
+let invGridIndex = Object.values(gridIndex);

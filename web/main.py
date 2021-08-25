@@ -8,6 +8,8 @@ from web.helpers import (
     handle_dsts,
     handle_place,
     handle_play,
+    handle_ring,
+    handle_row,
     parse_data,
     parse_play_data,
 )
@@ -53,6 +55,32 @@ async def play_src(request: Request):
 async def play_dst(request: Request):
     data = await request.json()
     response_data = handle_play(*parse_play_data(data))
+    if response_data is None:
+        raise HTTPException(409, "Action not valid for given state")
+    return JSONResponse(response_data)
+
+
+# @app.get("/row", response_class=JSONResponse)
+# async def update_rows(request: Request):
+#     data = await request.json()
+#     _, game = parse_data(data)
+#     response_data = dump_data(game, get_rows(game))
+#     return JSONResponse(response_data)
+
+
+@app.post("/row", response_class=JSONResponse)
+async def row(request: Request):
+    data = await request.json()
+    response_data = handle_row(data)
+    if response_data is None:
+        raise HTTPException(409, "Action not valid for given state")
+    return JSONResponse(response_data)
+
+
+@app.post("/ring", response_class=JSONResponse)
+async def ring(request: Request):
+    data = await request.json()
+    response_data = handle_ring(*parse_data(data))
     if response_data is None:
         raise HTTPException(409, "Action not valid for given state")
     return JSONResponse(response_data)
