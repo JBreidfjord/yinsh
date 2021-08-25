@@ -14,7 +14,6 @@ class Hex {
 function draw() {
   document.getElementById("select-container").style.display = "none";
   document.getElementById("canvas-container").style.display = "block";
-  canvas.addEventListener("mousemove", printPosition);
   if (canvas.getContext) {
     let ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -91,8 +90,65 @@ function draw() {
     ctx.moveTo(...get_coord(4, 16));
     ctx.lineTo(...get_coord(1, 19));
     ctx.stroke();
+
+    drawCapturedRings();
   } else {
-    // canvas-unsupported code here
+    document.getElementById("canvas-container").innerText =
+      "Browser unsupported";
+  }
+}
+
+function drawCapturedRings() {
+  let ctx = canvas.getContext("2d");
+  ctx.strokeStyle = "black";
+  if (state) {
+    if (state.color == "w") {
+      ctx.fillStyle = "white";
+      for (let i = 0; i < state.rings.white; i++) {
+        let x = w * 0.05 + size * 0.75 * i;
+        let y = h * 0.95;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.75, 0, Math.PI * 2);
+        ctx.moveTo(x + size * 0.6, y);
+        ctx.arc(x, y, size * 0.6, 0, Math.PI * 2);
+        ctx.fill("evenodd");
+        ctx.stroke();
+      }
+      ctx.fillStyle = "black";
+      for (let i = 0; i < state.rings.black; i++) {
+        let x = w * 0.95 - size * 0.75 * i;
+        let y = h * 0.05;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.75, 0, Math.PI * 2);
+        ctx.moveTo(x + size * 0.6, y);
+        ctx.arc(x, y, size * 0.6, 0, Math.PI * 2);
+        ctx.fill("evenodd");
+        ctx.stroke();
+      }
+    } else {
+      ctx.fillStyle = "black";
+      for (let i = 0; i < state.rings.black; i++) {
+        let x = w * 0.05 + size * 0.75 * i;
+        let y = h * 0.95;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.75, 0, Math.PI * 2);
+        ctx.moveTo(x + size * 0.6, y);
+        ctx.arc(x, y, size * 0.6, 0, Math.PI * 2);
+        ctx.fill("evenodd");
+        ctx.stroke();
+      }
+      ctx.fillStyle = "white";
+      for (let i = 0; i < state.rings.white; i++) {
+        let x = w * 0.95 - size * 0.75 * i;
+        let y = h * 0.05;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.75, 0, Math.PI * 2);
+        ctx.moveTo(x + size * 0.6, y);
+        ctx.arc(x, y, size * 0.6, 0, Math.PI * 2);
+        ctx.fill("evenodd");
+        ctx.stroke();
+      }
+    }
   }
 }
 
@@ -228,20 +284,6 @@ function getPosition(e) {
   let x = w - (e.clientX - rect.left); // Flip x coordinate by subtracting from width
   let y = h - (e.clientY - rect.top); // Flip y coordinate by subtracting from height
   return { x, y };
-}
-
-function printPosition(e) {
-  let pos = getPosition(e);
-  let hex = pixel_to_hex(pos.x, pos.y);
-  if (
-    Math.abs(hex.q) + Math.abs(hex.r) < 10 &&
-    Math.abs(hex.q) <= 5 &&
-    Math.abs(hex.r) <= 5
-  ) {
-    document.getElementById("coords").value = `(${hex.q}, ${hex.r})`;
-  } else {
-    document.getElementById("coords").value = "";
-  }
 }
 
 let gridIndex = {

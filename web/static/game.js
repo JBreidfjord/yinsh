@@ -15,16 +15,6 @@ let validDsts = [];
 function runGame() {
   draw();
 
-  // Resets state for rematches
-  state = {
-    grid: {},
-    color: color,
-    variant: variant,
-    rings: { white: 0, black: 0 },
-    requiresSetup: true,
-    rows: { w: [], b: [] },
-  };
-
   state.variant = document.querySelector("input[name='variant']:checked").value;
 
   canvas.addEventListener("click", handleClick);
