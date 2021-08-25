@@ -1,21 +1,14 @@
 document.getElementById("select-white").onclick = function () {
-  draw();
-  // setTimeout required to force DOM update
-  setTimeout(function () {
-    runGame(true);
-  }, 0);
+  playerTurn = true;
+  runGame();
 };
 document.getElementById("select-black").onclick = function () {
-  draw();
-  setTimeout(function () {
-    runGame(false);
-  }, 0);
+  playerTurn = false;
+  runGame();
 };
 document.getElementById("select-random").onclick = function () {
-  draw();
-  setTimeout(function () {
-    runGame(Math.random() < 0.5);
-  }, 0);
+  playerTurn = Math.random() < 0.5;
+  runGame();
 };
 
 function colorSelect() {
@@ -26,6 +19,7 @@ function colorSelect() {
 
 function gameEnd(winner) {
   document.getElementById("rematch-container").style.display = "block";
+  // display winner
   document.getElementById("rematch").onclick = function () {
     colorSelect();
   };

@@ -3,6 +3,14 @@ const w = canvas.width;
 const h = canvas.height;
 const size = 0.06 * w; // ((w * 0.9) / 10) * (2 / 3)
 
+class Hex {
+  constructor(q, r, s = -q - r) {
+    this.q = q;
+    this.r = r;
+    this.s = s;
+  }
+}
+
 function draw() {
   document.getElementById("select-container").style.display = "none";
   document.getElementById("canvas-container").style.display = "block";
@@ -82,7 +90,40 @@ function draw() {
     ctx.moveTo(...get_coord(4, 16));
     ctx.lineTo(...get_coord(1, 19));
     ctx.stroke();
+  } else {
+    // canvas-unsupported code here
   }
+}
+
+function drawRing(hex, color) {
+  let ctx = canvas.getContext("2d");
+  let pos = hex_to_pixel(hex);
+  if (color) {
+    ctx.fillStyle = "rgb(255, 255, 255)";
+  } else {
+    ctx.fillStyle = "rgb(0, 0, 0)";
+  }
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, size * 0.75, 0, Math.PI * 2);
+  ctx.moveTo(pos.x + size * 0.6, pos.y);
+  ctx.arc(pos.x, pos.y, size * 0.6, 0, Math.PI * 2);
+  ctx.fill("evenodd");
+  ctx.stroke();
+}
+
+function drawMarker(hex, color) {
+  let ctx = canvas.getContext("2d");
+  let pos = hex_to_pixel(hex);
+  ctx.beginPath();
+  if (color) {
+    ctx.fillStyle = "rgb(255, 255, 255)";
+  } else {
+    ctx.fillStyle = "rgb(0, 0, 0)";
+  }
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, size * 0.6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
 }
 
 function get_coord(col, row) {
@@ -96,14 +137,14 @@ function lerp(a, b, t) {
   return (a + (b - a) * t).toFixed(7);
 }
 
-function hex_round(q, r, s) {
-  let rq = Math.round(q);
-  let rr = Math.round(r);
-  let rs = Math.round(s);
+function hex_round(hex) {
+  let rq = Math.round(hex.q);
+  let rr = Math.round(hex.r);
+  let rs = Math.round(hex.s);
 
-  let q_diff = Math.abs(rq - q);
-  let r_diff = Math.abs(rr - r);
-  let s_diff = Math.abs(rs - s);
+  let q_diff = Math.abs(rq - hex.q);
+  let r_diff = Math.abs(rr - hex.r);
+  let s_diff = Math.abs(rs - hex.s);
 
   if (q_diff > r_diff && q_diff > s_diff) {
     rq = -rr - rs;
@@ -113,7 +154,7 @@ function hex_round(q, r, s) {
     rs = -rq - rr;
   }
 
-  return { rq, rs };
+  return new Hex(rq, rr, rs);
 }
 
 function pixel_to_hex(x, y) {
@@ -121,21 +162,21 @@ function pixel_to_hex(x, y) {
   y = h / 2 - y;
   let q = ((2 / 3) * x) / size;
   let r = ((-1 / 3) * x + (Math.sqrt(3) / 3) * y) / size;
-  return hex_round(q, r, -q - r);
+  return hex_round(new Hex(q, r));
 }
 
-function hex_to_pixel(q, r) {
-  let x = size * ((3 / 2) * q);
-  let y = size * ((Math.sqrt(3) / 2) * q + Math.sqrt(3) * r);
-  x = w / 2 - x;
-  y = h / 2 - y;
+function hex_to_pixel(hex) {
+  let x = size * ((3 / 2) * hex.q);
+  let y = size * ((Math.sqrt(3) / 2) * hex.q + Math.sqrt(3) * hex.r);
+  x = w / 2 + x;
+  y = h / 2 + y;
   return { x, y };
 }
 
 function getPosition(e) {
   let rect = e.target.getBoundingClientRect();
   let x = w - (e.clientX - rect.left); // Flip x coordinate by subtracting from width
-  let y = e.clientY - rect.top;
+  let y = h - (e.clientY - rect.top); // Flip y coordinate by subtracting from height
   return { x, y };
 }
 
@@ -143,12 +184,101 @@ function printPosition(e) {
   let position = getPosition(e);
   let hex = pixel_to_hex(position.x, position.y);
   if (
-    Math.abs(hex.rq) + Math.abs(hex.rs) < 10 &&
-    Math.abs(hex.rq) <= 5 &&
-    Math.abs(hex.rs) <= 5
+    Math.abs(hex.q) + Math.abs(hex.r) < 10 &&
+    Math.abs(hex.q) <= 5 &&
+    Math.abs(hex.r) <= 5
   ) {
-    document.getElementById("coords").value = `(${hex.rq}, ${hex.rs})`;
+    document.getElementById("coords").value = `(${hex.q}, ${hex.r})`;
   } else {
     document.getElementById("coords").value = "";
   }
 }
+
+let grid_index = {
+  0: new Hex(0, 0),
+  1: new Hex(-5, 1),
+  2: new Hex(-5, 2),
+  3: new Hex(-5, 3),
+  4: new Hex(-5, 4),
+  5: new Hex(-4, -1),
+  6: new Hex(-4, 0),
+  7: new Hex(-4, 1),
+  8: new Hex(-4, 2),
+  9: new Hex(-4, 3),
+  10: new Hex(-4, 4),
+  11: new Hex(-4, 5),
+  12: new Hex(-3, -2),
+  13: new Hex(-3, -1),
+  14: new Hex(-3, 0),
+  15: new Hex(-3, 1),
+  16: new Hex(-3, 2),
+  17: new Hex(-3, 3),
+  18: new Hex(-3, 4),
+  19: new Hex(-3, 5),
+  20: new Hex(-2, -3),
+  21: new Hex(-2, -2),
+  22: new Hex(-2, -1),
+  23: new Hex(-2, 0),
+  24: new Hex(-2, 1),
+  25: new Hex(-2, 2),
+  26: new Hex(-2, 3),
+  27: new Hex(-2, 4),
+  28: new Hex(-2, 5),
+  29: new Hex(-1, -4),
+  30: new Hex(-1, -3),
+  31: new Hex(-1, -2),
+  32: new Hex(-1, -1),
+  33: new Hex(-1, 0),
+  34: new Hex(-1, 1),
+  35: new Hex(-1, 2),
+  36: new Hex(-1, 3),
+  37: new Hex(-1, 4),
+  38: new Hex(-1, 5),
+  39: new Hex(0, -4),
+  40: new Hex(0, -3),
+  41: new Hex(0, -2),
+  42: new Hex(0, -1),
+  43: new Hex(0, 1),
+  44: new Hex(0, 2),
+  45: new Hex(0, 3),
+  46: new Hex(0, 4),
+  47: new Hex(1, -5),
+  48: new Hex(1, -4),
+  49: new Hex(1, -3),
+  50: new Hex(1, -2),
+  51: new Hex(1, -1),
+  52: new Hex(1, 0),
+  53: new Hex(1, 1),
+  54: new Hex(1, 2),
+  55: new Hex(1, 3),
+  56: new Hex(1, 4),
+  57: new Hex(2, -5),
+  58: new Hex(2, -4),
+  59: new Hex(2, -3),
+  60: new Hex(2, -2),
+  61: new Hex(2, -1),
+  62: new Hex(2, 0),
+  63: new Hex(2, 1),
+  64: new Hex(2, 2),
+  65: new Hex(2, 3),
+  66: new Hex(3, -5),
+  67: new Hex(3, -4),
+  68: new Hex(3, -3),
+  69: new Hex(3, -2),
+  70: new Hex(3, -1),
+  71: new Hex(3, 0),
+  72: new Hex(3, 1),
+  73: new Hex(3, 2),
+  74: new Hex(4, -5),
+  75: new Hex(4, -4),
+  76: new Hex(4, -3),
+  77: new Hex(4, -2),
+  78: new Hex(4, -1),
+  79: new Hex(4, 0),
+  80: new Hex(4, 1),
+  81: new Hex(5, -4),
+  82: new Hex(5, -3),
+  83: new Hex(5, -2),
+  84: new Hex(5, -1),
+};
+let inv_grid_index = Object.values(grid_index);
