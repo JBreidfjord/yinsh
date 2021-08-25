@@ -19,7 +19,11 @@ function colorSelect() {
 
 function gameEnd(winner) {
   document.getElementById("rematch-container").style.display = "block";
-  // display winner
+  if (winner == "Draw") {
+    document.getElementById("outcome").innerText = "Draw";
+  } else {
+    document.getElementById("outcome").innerText = `${winner} wins`;
+  }
   document.getElementById("rematch").onclick = function () {
     colorSelect();
   };

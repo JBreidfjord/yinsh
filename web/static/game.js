@@ -15,6 +15,15 @@ let validDsts = [];
 function runGame() {
   draw();
 
+  state = {
+    grid: {},
+    color: color,
+    variant: variant,
+    rings: { white: 0, black: 0 },
+    requiresSetup: true,
+    rows: { w: [], b: [] },
+  };
+
   state.variant = document.querySelector("input[name='variant']:checked").value;
 
   canvas.addEventListener("click", handleClick);
@@ -56,6 +65,7 @@ function placeMove(hex) {
     .then((data) => {
       let game = JSON.parse(data);
       state.grid = game.state.grid;
+      state.over = game.state.over;
       state.requiresSetup = game.state.requiresSetup;
       endTurn();
     })
@@ -79,6 +89,7 @@ function playMove(srcHex, dstHex) {
       state.grid = game.state.grid;
       state.rings = game.state.rings;
       state.rows = game.state.rows;
+      state.over = game.state.over;
       canvas.removeEventListener("click", handleDstClick);
       endTurn();
     })
@@ -164,6 +175,7 @@ function selectRow(e) {
             let game = JSON.parse(data);
             state.grid = game.state.grid;
             state.rows = game.state.rows;
+            state.over = game.state.over;
             canvas.removeEventListener("mousemove", highlightRow);
             canvas.removeEventListener("click", selectRow);
             canvas.addEventListener("mousemove", highlightRing);
@@ -200,6 +212,7 @@ function selectRing(e) {
         state.grid = game.state.grid;
         state.rings = game.state.rings;
         state.rows = game.state.rows;
+        state.over = game.state.over;
         canvas.removeEventListener("mousemove", highlightRing);
         canvas.removeEventListener("click", selectRing);
         endTurn();
@@ -243,8 +256,9 @@ function endTurn() {
   if (state.rows.w.length !== 0 || state.rows.b.length !== 0) {
     handleRows();
   } else {
-    if (state.isOver) {
+    if (state.over) {
       getOutcome();
+      return;
     }
     if (playerTurn) {
       playerTurn = false;
@@ -290,6 +304,7 @@ function botTurn() {
       state.grid = game.state.grid;
       state.rings = game.state.rings;
       state.rows = game.state.rows;
+      state.over = game.state.over;
       state.requiresSetup = game.state.requiresSetup;
       canvas.addEventListener("click", handleClick);
       endTurn();
@@ -312,6 +327,7 @@ function botRows() {
       state.grid = game.state.grid;
       state.rings = game.state.rings;
       state.rows = game.state.rows;
+      state.over = game.state.over;
       endTurn();
     })
     .catch((error) => {
@@ -320,6 +336,24 @@ function botRows() {
 }
 
 function getOutcome() {
-  // fetch outcome
-  // pass winner to gameEnd()
+  fetch("/outcome", { method: "POST", body: JSON.stringify({ state: state }) })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Invalid response");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      let outcome = JSON.parse(data);
+      if (outcome == "DRAW") {
+        gameEnd("Draw");
+      } else if (outcome == (state.color == "w")) {
+        gameEnd("Player");
+      } else {
+        gameEnd("Bot");
+      }
+    })
+    .catch((error) => {
+      console.error("Game not over", error);
+    });
 }

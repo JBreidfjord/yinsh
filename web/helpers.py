@@ -26,7 +26,7 @@ def handle_play(src_hex: Hex, dst_hex: Hex, game: GameState):
     move = Move.play(src_hex, dst_hex)
     try:
         game.make_move(move)
-        return dump_data(game, get_rows(game))
+        return dump_data(game)
     except IllegalMoveError:
         return
 
@@ -45,7 +45,7 @@ def handle_bot(game: GameState):
     game.next_player = game.next_player.other  # Flip to bot
     move = choice(list(game.legal_moves))
     game.make_move(move)
-    return dump_data(game, get_rows(game))
+    return dump_data(game)
 
 
 def handle_bot_row(game: GameState):
@@ -56,25 +56,34 @@ def handle_bot_row(game: GameState):
     )
     game.complete_row(row)
     game.remove_ring(hex)
-    return dump_data(game, get_rows(game))
+    return dump_data(game)
 
 
 def handle_row(data: dict):
     row = [Hex(*hex.values()) for hex in data["row"]]
     game = GameState.parse_state(data["state"])
     game.complete_row(row)
-    return dump_data(game, get_rows(game))
+    return dump_data(game)
 
 
 def handle_ring(hex: Hex, game: GameState):
     game.remove_ring(hex)
-    return dump_data(game, get_rows(game))
+    return dump_data(game)
 
 
 def get_rows(game: GameState):
     white = [[coordinate_index[hex] for hex in row] for row in game.board.get_rows(Player.WHITE)]
     black = [[coordinate_index[hex] for hex in row] for row in game.board.get_rows(Player.BLACK)]
     return {"w": white, "b": black}
+
+
+def get_outcome(game: GameState):
+    outcome = game.outcome()
+    if outcome is None:
+        return
+    if outcome.winner == "DRAW":
+        return json.dumps(outcome.winner)
+    return json.dumps(outcome.winner.value)
 
 
 def parse_data(data: dict):
@@ -93,7 +102,7 @@ def parse_play_data(data: dict):
     return src_hex, dst_hex, game
 
 
-def dump_data(game: GameState, rows: dict = {}):
+def dump_data(game: GameState):
     grid = {
         coordinate_index[hex]: content_index[content] for hex, content in game.board._grid.items()
     }
@@ -102,7 +111,8 @@ def dump_data(game: GameState, rows: dict = {}):
             "grid": grid,
             "rings": {"white": game.players.white.rings, "black": game.players.black.rings},
             "requiresSetup": game.requires_setup,
-            "rows": rows,
+            "rows": get_rows(game),
+            "over": game.is_over(),
         }
     }
     return json.dumps(data)
