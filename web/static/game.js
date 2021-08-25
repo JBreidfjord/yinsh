@@ -243,7 +243,9 @@ function endTurn() {
   if (state.rows.w.length !== 0 || state.rows.b.length !== 0) {
     handleRows();
   } else {
-    checkGameOver();
+    if (state.isOver) {
+      getOutcome();
+    }
     if (playerTurn) {
       playerTurn = false;
       botTurn();
@@ -287,6 +289,7 @@ function botTurn() {
       let game = JSON.parse(data);
       state.grid = game.state.grid;
       state.rings = game.state.rings;
+      state.rows = game.state.rows;
       state.requiresSetup = game.state.requiresSetup;
       canvas.addEventListener("click", handleClick);
       endTurn();
@@ -297,12 +300,26 @@ function botTurn() {
 }
 
 function botRows() {
-  // select random row
+  fetch("/bot-row", { method: "POST", body: JSON.stringify({ state: state }) })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Invalid response");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      let game = JSON.parse(data);
+      state.grid = game.state.grid;
+      state.rings = game.state.rings;
+      state.rows = game.state.rows;
+      endTurn();
+    })
+    .catch((error) => {
+      console.error("Invalid bot move", error);
+    });
 }
 
-function checkGameOver(board) {
-  // send call to api
-  // if not over, return
-  // if over, send winner to rematch function
-  return;
+function getOutcome() {
+  // fetch outcome
+  // pass winner to gameEnd()
 }

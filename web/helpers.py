@@ -37,16 +37,26 @@ def handle_dsts(hex: Hex, game: GameState):
     valid_dsts = [
         coordinate_index[move.dst_hex] for move in game.legal_moves if move.src_hex == hex
     ]
-    print(valid_dsts)
     if valid_dsts:
         return json.dumps(valid_dsts)
 
 
 def handle_bot(game: GameState):
-    game.next_player = game.next_player.other
+    game.next_player = game.next_player.other  # Flip to bot
     move = choice(list(game.legal_moves))
     game.make_move(move)
-    return dump_data(game)
+    return dump_data(game, get_rows(game))
+
+
+def handle_bot_row(game: GameState):
+    game.next_player = game.next_player.other  # Flip to bot
+    row = choice(game.board.get_rows(game.next_player))
+    hex = choice(
+        [hex for hex in game.board.rings if game.board.rings[hex].value == game.next_player.value]
+    )
+    game.complete_row(row)
+    game.remove_ring(hex)
+    return dump_data(game, get_rows(game))
 
 
 def handle_row(data: dict):

@@ -1,3 +1,5 @@
+from urllib import response
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -5,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 
 from web.helpers import (
     handle_bot,
+    handle_bot_row,
     handle_dsts,
     handle_place,
     handle_play,
@@ -33,6 +36,14 @@ async def bot(request: Request):
     return JSONResponse(response_data)
 
 
+@app.post("/bot-row", response_class=JSONResponse)
+async def bot_row(request: Request):
+    data = await request.json()
+    _, game = parse_data(data)
+    response_data = handle_bot_row(game)
+    return JSONResponse(response_data)
+
+
 @app.post("/place", response_class=JSONResponse)
 async def place(request: Request):
     data = await request.json()
@@ -58,14 +69,6 @@ async def play_dst(request: Request):
     if response_data is None:
         raise HTTPException(409, "Action not valid for given state")
     return JSONResponse(response_data)
-
-
-# @app.get("/row", response_class=JSONResponse)
-# async def update_rows(request: Request):
-#     data = await request.json()
-#     _, game = parse_data(data)
-#     response_data = dump_data(game, get_rows(game))
-#     return JSONResponse(response_data)
 
 
 @app.post("/row", response_class=JSONResponse)
