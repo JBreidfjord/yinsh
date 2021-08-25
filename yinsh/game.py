@@ -5,7 +5,16 @@ from typing import Iterator
 
 from yinsh.board import Board
 from yinsh.helpers import display_index, inv_coordinate_index, valid_hexes
-from yinsh.types import Direction, Hex, IllegalMoveError, Outcome, Player, Players
+from yinsh.types import (
+    Direction,
+    Hex,
+    IllegalMoveError,
+    Marker,
+    Outcome,
+    Player,
+    Players,
+    Ring,
+)
 
 
 class Move:
@@ -117,6 +126,35 @@ class GameState:
         players.black.set_rings(0)
 
         return GameState(Board.empty(), players, players.white, variant, is_setup=False)
+
+    @classmethod
+    def parse_state(cls, state: dict):
+        "Initializes a game of YINSH from a dict of game data"
+        players = Players()
+        players.white.set_rings(state["rings"]["white"])
+        players.black.set_rings(state["rings"]["black"])
+        player = players.white if state["color"] == "w" else players.black
+
+        board = Board.empty()
+        for i, content in state["grid"].items():
+            hex = inv_coordinate_index[int(i)]
+            if content == 0:
+                continue
+            elif content == 1:
+                board._grid[hex] = Ring.WHITE
+                board.rings[hex] = Ring.WHITE
+            elif content == 2:
+                board._grid[hex] = Ring.BLACK
+                board.rings[hex] = Ring.BLACK
+            elif content == 3:
+                board._grid[hex] = Marker.WHITE
+                board.markers[hex] = Marker.WHITE
+            elif content == 4:
+                board._grid[hex] = Marker.BLACK
+                board.markers[hex] = Marker.BLACK
+
+        is_setup = sum(state["rings"].values()) + len(board.rings) == 10
+        return GameState(board, players, player, state["variant"], is_setup)
 
     def is_over(self):
         return (
