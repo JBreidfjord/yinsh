@@ -3,7 +3,14 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from web.helpers import handle_bot, handle_place, handle_play, parse_data
+from web.helpers import (
+    handle_bot,
+    handle_dsts,
+    handle_place,
+    handle_play,
+    parse_data,
+    parse_play_data,
+)
 
 app = FastAPI()
 
@@ -33,6 +40,19 @@ async def place(request: Request):
     return JSONResponse(response_data)
 
 
-@app.post("/play", response_class=JSONResponse)
-async def play(request: Request):
+@app.post("/play-src", response_class=JSONResponse)
+async def play_src(request: Request):
     data = await request.json()
+    response_data = handle_dsts(*parse_data(data))
+    if response_data is None:
+        raise HTTPException(409, "Action not valid for given state")
+    return JSONResponse(response_data)
+
+
+@app.post("/play-dst", response_class=JSONResponse)
+async def play_dst(request: Request):
+    data = await request.json()
+    response_data = handle_play(*parse_play_data(data))
+    if response_data is None:
+        raise HTTPException(409, "Action not valid for given state")
+    return JSONResponse(response_data)

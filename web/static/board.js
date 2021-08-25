@@ -18,6 +18,7 @@ function draw() {
   if (canvas.getContext) {
     let ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "black";
 
     ctx.beginPath();
     // Vertical
@@ -95,13 +96,23 @@ function draw() {
   }
 }
 
-function drawRing(hex, color) {
+function drawRing(hex, color, transparency = null) {
   let ctx = canvas.getContext("2d");
   let pos = hex_to_pixel(hex);
   if (color) {
-    ctx.fillStyle = "rgb(255, 255, 255)";
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+    if (transparency) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+    }
   } else {
-    ctx.fillStyle = "rgb(0, 0, 0)";
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "black";
+    if (transparency) {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+    }
   }
   ctx.beginPath();
   ctx.arc(pos.x, pos.y, size * 0.75, 0, Math.PI * 2);
@@ -116,9 +127,11 @@ function drawMarker(hex, color) {
   let pos = hex_to_pixel(hex);
   ctx.beginPath();
   if (color) {
-    ctx.fillStyle = "rgb(255, 255, 255)";
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
   } else {
-    ctx.fillStyle = "rgb(0, 0, 0)";
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "black";
   }
   ctx.beginPath();
   ctx.arc(pos.x, pos.y, size * 0.6, 0, Math.PI * 2);
