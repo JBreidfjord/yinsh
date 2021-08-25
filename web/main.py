@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from web.helpers import handle_place, handle_play, parse_data
+from web.helpers import handle_bot, handle_place, handle_play, parse_data
 
 app = FastAPI()
 
@@ -16,9 +16,12 @@ async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.post("/random", response_class=JSONResponse)
-async def random(request: Request, state):
-    ...
+@app.post("/bot", response_class=JSONResponse)
+async def bot(request: Request):
+    data = await request.json()
+    _, game = parse_data(data)
+    response_data = handle_bot(game)
+    return JSONResponse(response_data)
 
 
 @app.post("/place", response_class=JSONResponse)

@@ -29,24 +29,13 @@ function handleClick(e) {
     canvas.removeEventListener("click", handleClick);
     let pos = getPosition(e);
     let hex = pixel_to_hex(pos.x, pos.y);
-    handleAction(hex);
+    if (state.requiresSetup) {
+      placeMove(hex);
+    } else {
+      playMove(hex);
+    }
   } else {
     return;
-  }
-}
-
-function handleAction(hex) {
-  let valid;
-  if (state.requiresSetup) {
-    valid = placeMove(hex);
-  } else {
-    valid = playMove(hex);
-  }
-  if (valid) {
-    playerTurn = false;
-    botTurn();
-  } else {
-    canvas.addEventListener("click", handleClick);
   }
 }
 
@@ -60,20 +49,30 @@ function placeMove(hex) {
       return response.json();
     })
     .then((data) => {
-      data = JSON.parse(data);
-      console.log(data);
-      console.log(state);
-      state.grid = data.state.grid;
-      state.rings = data.state.rings;
-      state.requiresSetup = data.state.requiresSetup;
-      updateBoard();
+      game = JSON.parse(data);
+      state.grid = game.state.grid;
+      state.rings = game.state.rings;
+      state.requiresSetup = game.state.requiresSetup;
+      endTurn();
     })
     .catch((error) => {
       console.error("Invalid move", error);
+      canvas.addEventListener("click", handleClick);
     });
 }
 
 function playMove(hex) {}
+
+function endTurn() {
+  updateBoard();
+  checkGameOver();
+  if (playerTurn) {
+    playerTurn = false;
+    botTurn();
+  } else {
+    playerTurn = true;
+  }
+}
 
 function updateBoard() {
   draw();
@@ -98,9 +97,24 @@ function updateBoard() {
 }
 
 function botTurn() {
-  // bot action
-  playerTurn = true;
-  canvas.addEventListener("click", handleClick);
+  fetch("/bot", { method: "POST", body: JSON.stringify({ state: state }) })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Invalid response");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      game = JSON.parse(data);
+      state.grid = game.state.grid;
+      state.rings = game.state.rings;
+      state.requiresSetup = game.state.requiresSetup;
+      canvas.addEventListener("click", handleClick);
+      endTurn();
+    })
+    .catch((error) => {
+      console.error("Invalid bot move", error);
+    });
 }
 
 function checkGameOver(board) {
@@ -109,10 +123,3 @@ function checkGameOver(board) {
   // if over, send winner to rematch function
   return;
 }
-
-// JSON Legend:
-// Empty: 0
-// White Ring: 1
-// Black Ring: 2
-// White Marker: 3
-// Black Marker: 4

@@ -1,4 +1,5 @@
 import json
+from random import choice
 
 from yinsh.game import GameState, Move
 from yinsh.helpers import coordinate_index
@@ -23,9 +24,17 @@ def handle_play(hex: Hex, game: GameState):
     ...
 
 
+def handle_bot(game: GameState):
+    game.next_player = game.next_player.other
+    move = choice(list(game.legal_moves))
+    game.make_move(move)
+    return dump_data(game)
+
+
 def parse_data(data: dict):
-    print(data)
-    hex = Hex(*data["action"].values())
+    hex = data.get("action")
+    if hex is not None:
+        hex = Hex(*hex.values())
     game = GameState.parse_state(data["state"])
     return hex, game
 
