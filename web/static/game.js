@@ -15,6 +15,7 @@ let validDsts = [];
 function runGame() {
   draw();
 
+  // Resets state for rematches
   state = {
     grid: {},
     color: color,
@@ -101,24 +102,34 @@ function playMove(srcHex, dstHex) {
 function getValidDst(hex) {
   playHex.src = hex;
   let game = { action: hex, state: state };
-  // add validation that hex is own ring
-  fetch("/play-src", { method: "POST", body: JSON.stringify(game) })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Invalid response");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      let dsts = JSON.parse(data);
-      validDsts = dsts.map((i) => gridIndex[parseInt(i)]);
-      validDsts.forEach((hex) => drawRing(hex, state.color == "w", 0.5));
-      canvas.addEventListener("click", handleDstClick);
-    })
-    .catch((error) => {
-      console.error("Invalid source hex", error);
-      canvas.addEventListener("click", handleClick);
-    });
+  // Check if hex contains player's ring and only fetch if it is
+  let hexContent =
+    state.grid[invGridIndex.findIndex((h) => h.q == hex.q && h.r == hex.r)];
+  if (
+    (state.color == "w" && hexContent == 1) ||
+    (state.color == "b" && hexContent == 2)
+  ) {
+    fetch("/play-src", { method: "POST", body: JSON.stringify(game) })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Invalid response");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        let dsts = JSON.parse(data);
+        validDsts = dsts.map((i) => gridIndex[parseInt(i)]);
+        validDsts.forEach((hex) => drawRing(hex, state.color == "w", 0.5));
+        canvas.addEventListener("click", handleDstClick);
+      })
+      .catch((error) => {
+        console.error("Invalid source hex", error);
+        canvas.addEventListener("click", handleClick);
+      });
+  } else {
+    canvas.removeEventListener("click", handleDstClick);
+    canvas.addEventListener("click", handleClick);
+  }
 }
 
 function handleDstClick(e) {
@@ -141,20 +152,30 @@ function handleDstClick(e) {
 
 function handleRows() {
   if (state.rows) {
-    // need to determine player order for edge cases where both sides get a row on a single turn
-    if (state.rows[state.color].length !== 0) {
-      canvas.addEventListener("mousemove", highlightRow);
-      canvas.addEventListener("click", selectRow);
-    }
-
-    if (state.rows[state.botColor].length !== 0) {
-      botRows();
+    if (playerTurn) {
+      if (state.rows[state.color].length !== 0) {
+        canvas.addEventListener("mousemove", highlightRow);
+        canvas.addEventListener("click", selectRow);
+      }
+      if (state.rows[state.botColor].length !== 0) {
+        botRows();
+      }
+    } else {
+      // Duplicate code to handle player ordering for edge cases where both
+      // players get a completed row in the same turn.
+      // Player whose turn it is has priority to select their row.
+      if (state.rows[state.botColor].length !== 0) {
+        botRows();
+      }
+      if (state.rows[state.color].length !== 0) {
+        canvas.addEventListener("mousemove", highlightRow);
+        canvas.addEventListener("click", selectRow);
+      }
     }
   }
 }
 
 function selectRow(e) {
-  // add validation for overlapping rows
   let pos = getPosition(e);
   let hex = pixel_to_hex(pos.x, pos.y);
   state.rows[state.color].forEach((row) => {
@@ -181,6 +202,10 @@ function selectRow(e) {
             canvas.addEventListener("mousemove", highlightRing);
             canvas.addEventListener("click", selectRing);
             updateBoard();
+            return; // Return to prevent overlapped rows from submitting multiple times
+            // Should have a better method to prevent this
+            // but this only applies if the selected hex is the overlapped hex
+            // so ideally users would select non-overlapped hexes instead.
           })
           .catch((error) => {
             console.error("Invalid source hex", error);
@@ -261,8 +286,8 @@ function endTurn() {
       return;
     }
     if (playerTurn) {
-      playerTurn = false;
       botTurn();
+      playerTurn = false;
     } else {
       playerTurn = true;
     }
