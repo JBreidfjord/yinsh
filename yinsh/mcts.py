@@ -3,6 +3,8 @@ from __future__ import annotations
 from copy import deepcopy
 from math import log, sqrt
 from random import choice
+from timeit import default_timer as timer
+
 from yinsh.game import GameState, Move
 from yinsh.types import Player
 
@@ -67,3 +69,18 @@ class Node:
             node.visits += 1
             node.wins += 1 if node.color.value == winner.value else 0
             node = node.parent
+
+
+def search(state: GameState, nodes: int, time: float, temperature: float):
+    root = Node(state.next_player, temperature, state)
+    start = timer()
+    for _ in range(nodes):
+        node = root.select_leaf()
+        node.expand()
+        outcome = node.simulate()
+        node.backpropagate(outcome.winner)
+
+        if start - timer() >= time:
+            break
+    # Select by max visits, q value as tiebreak
+    return max(root.children.items(), key=lambda item: (item[1].visits, item[1].q()))[0]
