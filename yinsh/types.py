@@ -82,14 +82,17 @@ class Player(Enum):
     def other(self):
         return Player.BLACK if self.value else Player.WHITE
 
-    def set_rings(self, num_rings: int):
-        self.rings = num_rings
-
 
 @dataclass
 class Players:
-    white = Player.WHITE
-    black = Player.BLACK
+    white: Player
+    black: Player
+
+
+@dataclass
+class Rings:
+    white: int
+    black: int
 
 
 class Ring(Enum):

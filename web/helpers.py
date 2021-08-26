@@ -1,6 +1,7 @@
 import json
 from random import choice
 
+from yinsh import mcts
 from yinsh.game import GameState, Move
 from yinsh.helpers import coordinate_index
 from yinsh.types import Hex, IllegalMoveError, Marker, Player, Ring
@@ -43,7 +44,8 @@ def handle_dsts(hex: Hex, game: GameState):
 
 def handle_bot(game: GameState):
     game.next_player = game.next_player.other  # Flip to bot
-    move = choice(list(game.legal_moves))
+    # move = choice(list(game.legal_moves))
+    move = mcts.search(game, 1600, 10, 1.41)
     game.make_move(move)
     return dump_data(game)
 
@@ -109,7 +111,7 @@ def dump_data(game: GameState):
     data = {
         "state": {
             "grid": grid,
-            "rings": {"white": game.players.white.rings, "black": game.players.black.rings},
+            "rings": {"white": game.rings.white, "black": game.rings.black},
             "requiresSetup": game.requires_setup,
             "rows": get_rows(game),
             "over": game.is_over(),

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from copy import deepcopy
 from math import log, sqrt
 from random import choice
 from timeit import default_timer as timer
+
+from tqdm.auto import trange
 
 from yinsh.game import GameState, Move
 from yinsh.types import Player
@@ -36,10 +37,10 @@ class Node:
 
     def select_leaf(self):
         node = self
-        while node.expanded:
+        while node.expanded and node.children:
             node = node.select_child()
         if node.state is None:
-            node.state = deepcopy(node.parent.state)
+            node.state = node.parent.state.copy()
             node.state.make_move(node.move)
         return node
 
@@ -54,9 +55,41 @@ class Node:
         self.expanded = True
 
     def simulate(self):
-        state = deepcopy(self.state)
+        state = self.state.copy()
         while not state.is_over():
             state.make_move(choice(list(state.legal_moves)))
+
+            # Handle rows
+            rows = state.board.get_rows(state.next_player.other)  # Player who moved last
+            if rows:
+                state.complete_row(choice(rows))
+                state.remove_ring(
+                    choice(
+                        [
+                            hex
+                            for hex, ring in state.board.rings.items()
+                            if ring.value == state.next_player.other.value
+                        ]
+                    )
+                )
+                # Check if this ended the game
+                if (state.next_player.other.value and state.rings.white == state._rings_to_win) or (
+                    not state.next_player.other.value and state.rings.black == state._rings_to_win
+                ):
+                    break
+
+            op_rows = state.board.get_rows(state.next_player)
+            if op_rows:
+                state.complete_row(choice(op_rows))
+                state.remove_ring(
+                    choice(
+                        [
+                            hex
+                            for hex, ring in state.board.rings.items()
+                            if ring.value == state.next_player.value
+                        ]
+                    )
+                )
         outcome = state.outcome()
         # Random result if drawn
         if outcome.winner == "DRAW":
@@ -74,13 +107,13 @@ class Node:
 def search(state: GameState, nodes: int, time: float, temperature: float):
     root = Node(state.next_player, temperature, state)
     start = timer()
-    for _ in range(nodes):
+    for _ in trange(nodes, ncols=100):
         node = root.select_leaf()
         node.expand()
         outcome = node.simulate()
         node.backpropagate(outcome.winner)
 
-        if start - timer() >= time:
+        if timer() - start >= time:
             break
     # Select by max visits, q value as tiebreak
     return max(root.children.items(), key=lambda item: (item[1].visits, item[1].q()))[0]

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import ast
+from copy import deepcopy
 from typing import Iterator
 
 from yinsh.board import Board
@@ -14,6 +14,7 @@ from yinsh.types import (
     Player,
     Players,
     Ring,
+    Rings,
 )
 
 
@@ -99,11 +100,13 @@ class GameState:
         board: Board,
         players: Players,
         next_player: Player,
+        rings: Rings,
         variant: str,
         is_setup: bool = True,
     ):
         self.board = board
         self.players = players
+        self.rings = rings
         self.next_player = next_player
         self.variant = variant
 
@@ -121,18 +124,16 @@ class GameState:
         if variant not in ["standard", "blitz"]:
             raise ValueError("Variant must be 'standard', 'blitz', or not given")
 
-        players = Players()
-        players.white.set_rings(0)
-        players.black.set_rings(0)
+        players = Players(Player.WHITE, Player.BLACK)
+        rings = Rings(0, 0)
 
-        return GameState(Board.empty(), players, players.white, variant, is_setup=False)
+        return GameState(Board.empty(), players, players.white, rings, variant, is_setup=False)
 
     @classmethod
     def parse_state(cls, state: dict):
         "Initializes a game of YINSH from a dict of game data"
-        players = Players()
-        players.white.set_rings(state["rings"]["white"])
-        players.black.set_rings(state["rings"]["black"])
+        players = Players(Player.WHITE, Player.BLACK)
+        rings = Rings(state["rings"]["white"], state["rings"]["black"])
         player = players.white if state["color"] == "w" else players.black
 
         board = Board.empty()
@@ -154,28 +155,26 @@ class GameState:
                 board.markers[hex] = Marker.BLACK
 
         is_setup = sum(state["rings"].values()) + len(board.rings) == 10
-        return GameState(board, players, player, state["variant"], is_setup)
+        return GameState(board, players, player, rings, state["variant"], is_setup)
 
     def is_over(self):
         return (
-            self.players.white.rings == self._rings_to_win
-            or self.players.black.rings == self._rings_to_win
+            self.rings.white == self._rings_to_win
+            or self.rings.black == self._rings_to_win
             or self.legal_moves.count() == 0
         )
 
     def outcome(self):
-        if self.players.white.rings == self._rings_to_win:
+        if self.rings.white == self._rings_to_win:
             return Outcome(winner=Player.WHITE)
-        elif self.players.black.rings == self._rings_to_win:
+        elif self.rings.black == self._rings_to_win:
             return Outcome(winner=Player.BLACK)
         elif self.legal_moves.count() == 0:
-            if self.players.white.rings == self.players.black.rings:
+            if self.rings.white == self.rings.black:
                 return Outcome(winner="DRAW")
             else:
                 return Outcome(
-                    winner=Player.WHITE
-                    if self.players.white.rings > self.players.black.rings
-                    else Player.BLACK
+                    winner=Player.WHITE if self.rings.white > self.rings.black else Player.BLACK
                 )
 
     def make_move(self, move: Move):
@@ -202,11 +201,18 @@ class GameState:
 
     def remove_ring(self, hex: Hex):
         if self.board.rings[hex].value:
-            self.players.white.rings += 1
+            self.rings.white += 1
         else:
-            self.players.black.rings += 1
+            self.rings.black += 1
         self.board._remove_ring(hex)
 
     @property
     def legal_moves(self):
         return MoveGenerator(self)
+
+    def copy(self):
+        players = Players(Player.WHITE, Player.BLACK)
+        rings = Rings(self.rings.white, self.rings.black)
+        next_player = Player.WHITE if self.next_player.value else Player.BLACK
+        board = deepcopy(self.board)
+        return GameState(board, players, next_player, rings, self.variant, not self.requires_setup)
